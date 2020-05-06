@@ -15,7 +15,8 @@ import os
 from glob import glob
 
 from layers import *
-from transformers import BertTokenizer, BertConfig, BertForSequenceClassification
+from transformers import BertTokenizer, BertConfig, BertForSequenceClassification, BertForNextSentencePrediction
+from itertools import repeat
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -24,56 +25,95 @@ GGCLASSES = ['negative','positive']
 
 class BERT():
     def __init__(self):
-        self.tokenizer = tokenizer = BertTokenizer('./models/vocab.txt', do_lower_case=True)
-        self.model = BertForSequenceClassification.from_pretrained('./models/', cache_dir=None, from_tf=False, state_dict=None).to("cuda:0")
+        #self.tokenizer = tokenizer = BertTokenizer('./models/vocab.txt', do_lower_case=True)
+        #self.model = BertForSequenceClassification.from_pretrained('./models/', cache_dir=None, from_tf=False, state_dict=None).to("cuda:0")
+        self.model = BertForNextSentencePrediction.from_pretrained('bert-base-uncased')
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        self.max_seq_len = 128 #TODO: Dont hard code this
 
-    def encode(self, s):
-        return self.tokenizer.encode(s, add_special_tokens=True)
+    def encodeAndPadNormClassifier(self, s):
+        enc = self.tokenizer.encode(s, add_special_tokens=True)
+        enc_pad = enc + [0] * (self.max_seq_len - len(enc))
+        return enc_pad
+
+    def encodeAndPadNSP(self, seq_A, seq_B):
+        encoded = tokenizer.encode_plus(seq_A, text_pair=seq_B, return_tensors='pt')
+        print(encoded)
+        return encoded
 
     def replaceOBJ(self, s):
         return s.replace("OBJ","<UNK>")
 
-    def predict(self, s_input=[], batch_size = 8, template_count=80):
+    def predictNSP(self, s_input=[], s_labels=[], batch_size=8, template_count=80):
+        with torch.no_grad():
+            s_labels_noOBJ = list(map(self.replaceOBJ,s_labels))
+
+            #Encode both text sequences into BERT-recognized IDs
+            enc = list(map(self.encodeAndPadNSP,s_input,s_labels_noOBJ))
+
+            #Make NSP predictions
+            seq_relationship_logits = self.model(**enc)[0]
+
+            # we still need softmax to convert the logits into probabilities
+            # index 0: sequence B is a continuation of sequence A
+            # index 1: sequence B is a random sequence
+            probs = softmax(seq_relationship_logits, dim=1)
+
+            print(seq_relationship_logits)
+            print(probs)
+
+            r = probs #needs to be converted back to 8x80
+            rs = torch.split(r, template_count)
+            return rs
+
+    def predict(self, s_input=[], s_labels=[], batch_size = 8, template_count=80):
 
         with torch.no_grad():
             # Performce sequence classification inference, BERT_BATCH_SIZE = len(templates) * BATCH_SIZE
-            #convert p to 1 dimensional tensor
-            #pc = conversion to 1D voodoo
-            p = s_input
-            te = []
+
+            #environment descriptions
+            di = []
             if len(s_input) == 0:
-                t = ["nothing here. go north"] * (template_count * batch_size)
+                d = ["there is nothing in the room"] * (template_count * batch_size)
+                # Replace OBJ with <UNK>
+                # dunk = list(map(self.replaceOBJ,d))
+                # encode every string with the BERT tokenizer
+                di = list(map(self.encode,dunk) )
+                #p = [t] * batch_size
+            else:
+                #dunk = list(map(self.replaceOBJ,s_input))
+                # encode every string with the BERT tokenizer
+                di = list(map(self.encodeAndPad,dunk) )
+
+            #templates
+            ti = []
+            if len(s_labels) == 0:
+                t = ["go north"] * (template_count * batch_size)
                 # Replace OBJ with <UNK>
                 tunk = list(map(self.replaceOBJ,t))
                 # encode every string with the BERT tokenizer
-                te = list(map(self.encode,tunk) )
+                ti = list(map(self.encode,tunk) )
                 #p = [t] * batch_size
             else:
-                tunk = list(map(self.replaceOBJ,p))
+                tunk = list(map(self.replaceOBJ,s_labels))
                 # encode every string with the BERT tokenizer
-                te = list(map(self.encode,tunk) )
+                ti = list(map(self.encodeAndPad,tunk) )
 
-            print(te)
-            #ginput_ids = torch.tensor(tokenizer.encode("", add_special_tokens=True)).unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZE
-            ginput_ids = torch.tensor(te)#.unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZEge
-            glabels = torch.tensor([1]).unsqueeze(0).cuda()
+            #input sequences need to be the environment description
+            ginput_ids = torch.tensor(di).unsqueeze(0).cuda()
+            ginput_ids = ginput_ids.squeeze(1).squeeze(0).cuda() # Batch size = len(templates) * BATCH_SIZEge
 
-            print(ginput_ids.shape)
-            goutputs = self.model(ginput_ids.long(), labels=glabels)
+            #labels here need to be the templates
+            glabels_ids = torch.tensor(ti).unsqueeze(0).cuda()
+            glabels_ids = glabels_ids.squeeze(1).cuda() # Batch size = len(templates) * BATCH_SIZEge
+            glabels = torch.tensor(glabels_ids).cuda()
+
+            #print(ginput_ids.shape)
+            goutputs = self.model(ginput_ids.long(), labels=glabels.long())
             gloss, glogits = goutputs[:2]
 
             r = glogits #needs to be converted
-            print(len(r))
-            assert( len(r) == batch_size * template_count)
-            #print("BERT TEST OUT: {},{}".format(loss,logits))
-            #classification_index = max(range(len(glogits[0])), key=glogits[0].__getitem__)
-            #print(GGCLASSES[classification_index])
-            #BERT_neg_reward = glogits[0][0].item()
-            #neg_values_per_command.append(BERT_neg_reward)
-            #BERT_pos_reward = glogits[0][1].item()
-            # Reshape result back to 8x80
-            #return an 8x80 tensor
-            rs = torch.split(r, batch_size)
+            rs = torch.split(r, template_count)
             return rs
 
 class GAT(nn.Module):
@@ -208,7 +248,7 @@ class KGA2C(nn.Module):
         value = self.critic(state_emb)
         return value
 
-    def forward(self, obs, scores, graph_rep, graphs):
+    def forward(self, obs, scores, graph_rep, graphs, looks):
         '''
         :param obs: The encoded ids for the textual observations (shape 4x300):
         The 4 components of an observation are: look - ob_l, inventory - ob_i, response - ob_r, and prev_action. 
@@ -216,14 +256,14 @@ class KGA2C(nn.Module):
 
         '''
         batch = self.batch_size
-        #print('obs', obs)
+        print(looks)
         #print('graphs', graphs)
         o_t, h_t = self.action_drqa.forward(obs)
 
         src_t = []
 
         for scr in scores:
-            #fist bit encodes +/-
+            #first bit encodes +/-
             if scr >= 0:
                 cur_st = [0]
             else:
@@ -250,26 +290,37 @@ class KGA2C(nn.Module):
         softmax_out = self.softmax(decoder_t_output)
         topi = softmax_out.multinomial(num_samples=1) #These are the BATCH_SIZE number of action templates 
         #Map index to self.template_generator.templates
-        print(topi)
-        # First take the probability distribution (logits) for all the templates (BATCH_SIZE x len(self.template_generator.templates))
-        topy = softmax_out
 
-        # Sample all ids, map to templates, replacing OBJ with <UNK> on the way
-        # TopN shape is 8x80
-        topn = softmax_out.multinomial(num_samples=len(self.templates))
+        # Sample all ids
+        template_ids = softmax_out.multinomial(num_samples=len(self.templates))
 
-        # map nums to string then send the list to bert to predict (as a flat list to map with the bert tokenizer)
-        topn_flat = torch.flatten(topn).tolist()
-        topn_str = list(map(self.num_to_template,topn_flat))
+        # Map encodings to string template and add descriptions,  then send the list to bert to predict (as a flat list to map with the bert tokenizer)
+        template_ids_flat = torch.flatten(template_ids).tolist()
+        template_ids_str = list(map(self.num_to_template,template_ids_flat))
 
-        print(topn_str)
-        print(len(topn_str))
-        bert_softmax = self.bert.predict(s_input=topn_str)
+        #Now you have the logits for each pair... that is the probabilities that the action template follows that environment description
+        # or [1] that it is a random sentence.
+        bert_output = self.bert.predictNSP(s_input=looks,s_labels=template_ids_str)
 
-        # For each action, combine 2 matricies (addition? subtraction?)
-        comb_softmax = bert_softmax + softmax_out
+        # Take all of the logits and perform whatever operation you want... lets combine the two for relative certainty
+        # We could probably do this with map or list comp...
+        combsamp = []
+        for a in bert_output:
+            e = []
+            for b in a:
+                c = b[0] + b[1]
+                d = c.detach().item() * 10
+                if d <= 0:
+                    d = 0.001
+                e.append()
+            combsamp.append(e)
 
-        USE_BERT == True #TODO:eventually this will be in train.py args... 
+        # Take KG-A2C's probability distribution (logits) for all the templates (BATCH_SIZE x len(self.template_generator.templates))
+        # Then for each template combine them with BERT's NSP output, combine 2 matricies (addition? subtraction?)
+        comb_softmax = torch.tensor(combsamp).cuda() * softmax_out.cuda()
+
+        print(comb_softmax)
+        USE_BERT = True #TODO:eventually this will be in train.py args... 
         if USE_BERT == True:
             topi = comb_softmax.multinomial(num_samples=1)
 

@@ -8,7 +8,7 @@ from jericho.template_action_generator import *
 from jericho.defines import TemplateAction
 
 
-GraphInfo = collections.namedtuple('GraphInfo', 'objs, ob_rep, act_rep, graph_state, graph_state_rep, admissible_actions, admissible_actions_rep')
+GraphInfo = collections.namedtuple('GraphInfo', 'objs, ob_rep, act_rep, graph_state, graph_state_rep, admissible_actions, admissible_actions_rep, description') #SJF
 
 def load_vocab(env):
     vocab = {i+2: str(v) for i, v in enumerate(env.get_dictionary())}
@@ -109,8 +109,10 @@ class KGA2CEnv:
         graph_state = self.state_rep.graph_state
         graph_state_rep = self.state_rep.graph_state_rep
         action_rep = self.state_rep.get_action_rep_drqa(action)
+        desc = ob_l.replace('.','') +' and '+ob_i #SJF
+        desc_clean_array = desc.split('\n') #SJF
         return GraphInfo(objs, ob_rep, action_rep, graph_state, graph_state_rep,\
-                         admissible_actions, admissible_actions_rep)
+                         admissible_actions, admissible_actions_rep, ' '.join(desc_clean_array)) #SJF
 
 
     def step(self, action):
@@ -133,7 +135,8 @@ class KGA2CEnv:
                                    graph_state=self.state_rep.graph_state,
                                    graph_state_rep=self.state_rep.graph_state_rep,
                                    admissible_actions=[],
-                                   admissible_actions_rep=[])
+                                   admissible_actions_rep=[],
+                                   description=["None"]) #SJF
         else:
             graph_info = self._build_graph_rep(action, obs)
         return obs, reward, done, info, graph_info

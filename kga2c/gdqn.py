@@ -154,12 +154,14 @@ class KGA2CTrainer(object):
         obs, infos, graph_infos = self.vec_env.reset()
         for step in range(1, max_steps + 1):
             tb.logkv('Step', step)
-            obs_reps = np.array([g.ob_rep for g in graph_infos])
-            graph_mask_tt = self.generate_graph_mask(graph_infos)
-            graph_state_reps = [g.graph_state_rep for g in graph_infos]
+            descs = [g.description for g in graph_infos] # get desc #SJF
+            obs_reps = np.array([g.ob_rep for g in graph_infos]) 
+            graph_mask_tt = self.generate_graph_mask(graph_infos) 
+            graph_state_reps = [g.graph_state_rep for g in graph_infos] 
             scores = [info['score'] for info in infos]
+
             tmpl_pred_tt, obj_pred_tt, dec_obj_tt, dec_tmpl_tt, value, dec_steps = self.model(
-                obs_reps, scores, graph_state_reps, graph_mask_tt)
+                obs_reps, scores, graph_state_reps, graph_mask_tt, descs) #SJF
             tb.logkv_mean('Value', value.mean().item())
 
             # Log the predictions and ground truth values
