@@ -6,10 +6,43 @@ import torch.nn.functional as F
 import spacy
 import numpy as np
 
-from layers import *
+import re
+from typing import List, Mapping, Any, Optional
+from collections import defaultdict
 
+from torch.autograd import Variable
+import os
+from glob import glob
+
+from layers import *
+from transformers import BertTokenizer, BertConfig, BertForSequenceClassification
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+GGCLASSES = ['negative','positive']
+
+class BERT():
+    def __init__(self):
+        self.tokenizer = tokenizer = BertTokenizer('./models/floydvocab.txt', do_lower_case=True)
+        self.model = BertForSequenceClassification.from_pretrained('./models/', cache_dir=None, from_tf=False, state_dict=None).to("cuda:0")
+    def predict(inputTensor=[], batch_size = 8, template_count=80):
+        with torch.no_grad():
+            # Performce sequence classification inference, BERT_BATCH_SIZE = len(templates) * BATCH_SIZE
+            
+            ginput_ids = torch.tensor(tokenizer.encode(desc+'. He '+infos["admissible_commands"][idx], add_special_tokens=True)).unsqueeze(0).cuda() # Batch size 1
+            glabels = torch.tensor([batch_size*template_count]).unsqueeze(0).cuda()  # Batch size 8
+            goutputs = ggmodel(ginput_ids, labels=glabels)
+            gloss, glogits = goutputs[:2]
+            #print("BERT TEST OUT: {},{}".format(loss,logits))
+            classification_index = max(range(len(glogits[0])), key=glogits[0].__getitem__)
+            #print(GGCLASSES[classification_index])
+            BERT_neg_reward = glogits[0][0].item()
+            #neg_values_per_command.append(BERT_neg_reward)
+            BERT_pos_reward = glogits[0][1].item()
+            # Reshape result back to 8x80
+            #return an 8x80 tensor
+            return []
 
 class GAT(nn.Module):
     def __init__(self, nfeat, nhid, dropout, alpha, nheads):
@@ -94,6 +127,7 @@ class KGA2C(nn.Module):
         self.templates = templates
         self.gat = gat
         self.max_word_length = max_word_length
+        self.bert = BERT()
         self.vocab = vocab_act
         self.vocab_rev = vocab_act_rev
         self.batch_size = params['batch_size']
@@ -178,13 +212,38 @@ class KGA2C(nn.Module):
         templ_enc_input = []
         decode_steps = []
 
-        topi = self.softmax(decoder_t_output).multinomial(num_samples=1)
+        softmax_out = self.softmax(decoder_t_output)
+        topi = softmax_out.multinomial(num_samples=1) #These are the BATCH_SIZE number of action templates 
+        #Map index to self.template_generator.templates
+
+        # First take the probability distribution (logits) for all the templates (BATCH_SIZE x len(self.template_generator.templates))
+        topy = softmax_out
+
+        # Sample all ids, map to templates, replacing OBJ with <UNK> on the way
+        # TopN shape is 8x80
+        topn = softmax_out.multinomial(num_samples=len(self.template_generator.templates))
+
+        # Replace OBJ with <UNK>
+
+        self.bert()
+
+        # For each action, combine 2 matricies (addition? subtraction?)
+
+        # Sample top 1 at first
+
+        print(topi)
+        print(topy)
+
+        #print(topi)
         #topi = decoder_t_output.topk(1)[1]#self.params['k'])
 
+        #BERT model goes here. Take top k
         for i in range(batch):
             #print(topi[i].squeeze().detach().item())
+            #print(self.templates[topi[i].squeeze().detach().item()])
+            #print(self.templates[topi[i].squeeze().detach().item()]) #This is where you can get the templates in text form
             templ, decode_step = self.get_action_rep(self.templates[topi[i].squeeze().detach().item()])
-            #print(templ, decode_step)
+            print(templ, decode_step) #This is where you get the words to be used (in number form)b
             templ_enc_input.append(templ)
             decode_steps.append(decode_step)
 

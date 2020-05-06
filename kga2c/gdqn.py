@@ -83,6 +83,9 @@ class KGA2CTrainer(object):
         for adm in admissible:
             obj_t = set()
             cur_t = [0] * len(self.template_generator.templates)
+            print('templates')
+            print(self.template_generator.templates)
+            print(len(self.template_generator.templates))
             for a in adm:
                 cur_t[a.template_id] = 1
                 obj_t.update(a.obj_ids)
@@ -171,6 +174,7 @@ class KGA2CTrainer(object):
 
             # Log template/object predictions/ground_truth
             gt_tmpls = [self.template_generator.templates[i] for i in tmpl_gt_tt[0].nonzero().squeeze().cpu().numpy().flatten().tolist()]
+            print(gt_tmpls)
             gt_objs = [self.vocab_act[i] for i in obj_mask_gt_tt[0,0].nonzero().squeeze().cpu().numpy().flatten().tolist()]
             log('TmplPred: {} GT: {}'.format(tmpl_pred_str, ', '.join(gt_tmpls)))
             topk_o1_probs, topk_o1_idxs = F.softmax(obj_pred_tt[0,0]).topk(5)
@@ -180,7 +184,7 @@ class KGA2CTrainer(object):
             log('ObjtPred: {} GT: {}'.format(o1_pred_str, ', '.join(gt_objs))) # , ', '.join(graph_mask_str)))
 
             chosen_actions = self.decode_actions(dec_tmpl_tt, dec_obj_tt)
-
+            print(chosen_actions)
             obs, rewards, dones, infos, graph_infos = self.vec_env.step(chosen_actions)
             tb.logkv_mean('TotalStepsPerEpisode', sum([i['steps'] for i in infos]) / float(len(graph_infos)))
             tb.logkv_mean('Valid', infos[0]['valid'])

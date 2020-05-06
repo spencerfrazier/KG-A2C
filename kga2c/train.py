@@ -2,6 +2,8 @@ import os
 from gdqn import KGA2CTrainer
 import argparse
 
+#python3 train.py --rom_file_path roms/905.z5 --openie_path ../stanford-corenlp-full-2018-10-05 --tsv_file ../data/905_entity2id.tsv
+#python3 train.py --rom_file_path roms/905.z5 --tsv_file ../data/905_entity2id.tsv
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -10,7 +12,7 @@ def parse_args():
     parser.add_argument('--tsv_file', default='../data/zork1_entity2id.tsv')
     parser.add_argument('--rom_file_path', default='roms/zork1.z5')
     parser.add_argument('--openie_path', default='stanford-corenlp-full-2018-10-05')
-    parser.add_argument('--batch_size', default=16, type=int)
+    parser.add_argument('--batch_size', default=8, type=int)
     parser.add_argument('--lr', default=0.003, type=float)
     parser.add_argument('--gamma', default=.5, type=float)
     parser.add_argument('--embedding_size', default=50, type=int)
@@ -38,6 +40,7 @@ def parse_args():
     parser.add_argument('--recurrent', default=True, type=bool)
     parser.add_argument('--checkpoint_interval', default=500, type=int)
     parser.add_argument('--no-gat', dest='gat', action='store_false')
+    parser.add_argument('--use_bert', default=True, type=bool)
     parser.add_argument('--masking', default='kg', choices=['kg', 'interactive', 'none'], help='Type of object masking applied')
     parser.set_defaults(gat=True)
     args = parser.parse_args()
