@@ -27,7 +27,7 @@ class BERT():
     def __init__(self):
         #self.tokenizer = tokenizer = BertTokenizer('./models/vocab.txt', do_lower_case=True)
         #self.model = BertForSequenceClassification.from_pretrained('./models/', cache_dir=None, from_tf=False, state_dict=None).to("cuda:0")
-        self.model = BertForNextSentencePrediction.from_pretrained('bert-base-uncased')
+        self.model = BertForNextSentencePrediction.from_pretrained('bert-base-uncased').cuda()
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.max_seq_len = 128 #TODO: Dont hard code this
 
@@ -37,7 +37,7 @@ class BERT():
         return enc_pad
 
     def encodeAndPadNSP(self, seq_A, seq_B):
-        encoded = tokenizer.encode_plus(seq_A, text_pair=seq_B, return_tensors='pt')
+        encoded = self.tokenizer.encode_plus(seq_A, text_pair=seq_B, return_tensors='pt')
         print(encoded)
         return encoded
 
@@ -49,10 +49,15 @@ class BERT():
             s_labels_noOBJ = list(map(self.replaceOBJ,s_labels))
 
             #Encode both text sequences into BERT-recognized IDs
-            enc = list(map(self.encodeAndPadNSP,s_input,s_labels_noOBJ))
+            enc_ids = list(map(self.encodeAndPadNormClassifier,s_input))
+            enc_labels = list(map(self.encodeAndPadNormClassifier,s_labels_noOBJ))
 
+            input_ids = torch.tensor(enc_ids).unsqueeze(0).cuda()
+            input_ids = input_ids.squeeze(1).squeeze(0).cuda()
+            enc_ids = torch.tensor(enc_labels).cuda()
+            #print(enc)
             #Make NSP predictions
-            seq_relationship_logits = self.model(**enc)[0]
+            seq_relationship_logits = self.model(input_ids,enc_ids)
 
             # we still need softmax to convert the logits into probabilities
             # index 0: sequence B is a continuation of sequence A
@@ -256,7 +261,7 @@ class KGA2C(nn.Module):
 
         '''
         batch = self.batch_size
-        print(looks)
+        #print(looks)
         #print('graphs', graphs)
         o_t, h_t = self.action_drqa.forward(obs)
 

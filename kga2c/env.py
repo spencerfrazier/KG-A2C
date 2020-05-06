@@ -6,7 +6,7 @@ import random
 import jericho
 from jericho.template_action_generator import *
 from jericho.defines import TemplateAction
-
+import re
 
 GraphInfo = collections.namedtuple('GraphInfo', 'objs, ob_rep, act_rep, graph_state, graph_state_rep, admissible_actions, admissible_actions_rep, description') #SJF
 
@@ -111,8 +111,9 @@ class KGA2CEnv:
         action_rep = self.state_rep.get_action_rep_drqa(action)
         desc = ob_l.replace('.','') +' and '+ob_i #SJF
         desc_clean_array = desc.split('\n') #SJF
+        desc_clean = re.sub(' +', ' ',' '.join(desc_clean_array))
         return GraphInfo(objs, ob_rep, action_rep, graph_state, graph_state_rep,\
-                         admissible_actions, admissible_actions_rep, ' '.join(desc_clean_array)) #SJF
+                         admissible_actions, admissible_actions_rep, desc_clean ) #SJF
 
 
     def step(self, action):
