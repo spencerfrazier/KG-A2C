@@ -16,6 +16,8 @@ from glob import glob
 
 from layers import *
 from transformers import BertTokenizer, BertConfig, BertForSequenceClassification, BertForNextSentencePrediction
+
+import itertools
 from itertools import repeat
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -38,7 +40,6 @@ class BERT():
 
     def encodeAndPadNSP(self, seq_A, seq_B):
         encoded = self.tokenizer.encode_plus(seq_A, text_pair=seq_B, return_tensors='pt')
-        print(encoded)
         return encoded
 
     def replaceOBJ(self, s):
@@ -53,21 +54,13 @@ class BERT():
             enc_labels = list(map(self.encodeAndPadNormClassifier,s_labels_noOBJ))
 
             input_ids = torch.tensor(enc_ids).unsqueeze(0).cuda()
-            input_ids = input_ids.squeeze(1).squeeze(0).cuda()
+            input_ids = input_ids.squeeze(1).squeeze(0).cuda() #TODO FIX SQUEEZING
             enc_ids = torch.tensor(enc_labels).cuda()
-            #print(enc)
+
             #Make NSP predictions
-            seq_relationship_logits = self.model(input_ids,enc_ids)
+            goutputs = self.model(input_ids,enc_ids)
 
-            # we still need softmax to convert the logits into probabilities
-            # index 0: sequence B is a continuation of sequence A
-            # index 1: sequence B is a random sequence
-            probs = softmax(seq_relationship_logits, dim=1)
-
-            print(seq_relationship_logits)
-            print(probs)
-
-            r = probs #needs to be converted back to 8x80
+            r = goutputs[0] #needs to be converted back to 8x80
             rs = torch.split(r, template_count)
             return rs
 
@@ -260,6 +253,7 @@ class KGA2C(nn.Module):
         :type obs: ndarray
 
         '''
+        #TODO: why is looks only 8 x 1 not 8 x 80
         batch = self.batch_size
         #print(looks)
         #print('graphs', graphs)
@@ -294,6 +288,9 @@ class KGA2C(nn.Module):
 
         softmax_out = self.softmax(decoder_t_output)
         topi = softmax_out.multinomial(num_samples=1) #These are the BATCH_SIZE number of action templates 
+
+        print("Before BERT:")
+        print(list(map(self.num_to_template,softmax_out.multinomial(num_samples=10))))
         #Map index to self.template_generator.templates
 
         # Sample all ids
@@ -303,9 +300,14 @@ class KGA2C(nn.Module):
         template_ids_flat = torch.flatten(template_ids).tolist()
         template_ids_str = list(map(self.num_to_template,template_ids_flat))
 
+        #list2d = [[1,2,3], [4,5,6], [7], [8,9]]
+        looks_flat = looks + ( looks * ( len(self.templates) - 1 ) )
+
+        #looks_flat = torch.flatten(torch.tensor(looks)).tolist()
+        #print(looks_flat)
         #Now you have the logits for each pair... that is the probabilities that the action template follows that environment description
         # or [1] that it is a random sentence.
-        bert_output = self.bert.predictNSP(s_input=looks,s_labels=template_ids_str)
+        bert_output = self.bert.predictNSP(s_input=looks_flat,s_labels=template_ids_str)
 
         # Take all of the logits and perform whatever operation you want... lets combine the two for relative certainty
         # We could probably do this with map or list comp...
@@ -317,22 +319,23 @@ class KGA2C(nn.Module):
                 d = c.detach().item() * 10
                 if d <= 0:
                     d = 0.001
-                e.append()
+                e.append(d)
             combsamp.append(e)
 
         # Take KG-A2C's probability distribution (logits) for all the templates (BATCH_SIZE x len(self.template_generator.templates))
         # Then for each template combine them with BERT's NSP output, combine 2 matricies (addition? subtraction?)
         comb_softmax = torch.tensor(combsamp).cuda() * softmax_out.cuda()
 
-        print(comb_softmax)
+        #print(comb_softmax)
         USE_BERT = True #TODO:eventually this will be in train.py args... 
         if USE_BERT == True:
             topi = comb_softmax.multinomial(num_samples=1)
 
         # Sample top 1 at first
-
-        print(topi)
-        print(topy)
+        print("After BERT:")
+        print(list(map(self.num_to_template,comb_softmax.multinomial(num_samples=10))))
+        #print(topi)
+        #print(topy)
 
         #print(topi)
         #topi = decoder_t_output.topk(1)[1]#self.params['k'])
@@ -343,7 +346,7 @@ class KGA2C(nn.Module):
             #print(self.templates[topi[i].squeeze().detach().item()])
             #print(self.templates[topi[i].squeeze().detach().item()]) #This is where you can get the templates in text form
             templ, decode_step = self.get_action_rep(self.templates[topi[i].squeeze().detach().item()])
-            print(templ, decode_step) #This is where you get the words to be used (in number form)b
+            #print(templ, decode_step) #This is where you get the words to be used (in number form)b
             templ_enc_input.append(templ)
             decode_steps.append(decode_step)
 
