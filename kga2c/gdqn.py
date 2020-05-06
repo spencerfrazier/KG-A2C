@@ -83,9 +83,9 @@ class KGA2CTrainer(object):
         for adm in admissible:
             obj_t = set()
             cur_t = [0] * len(self.template_generator.templates)
-            print('templates')
-            print(self.template_generator.templates)
-            print(len(self.template_generator.templates))
+            #print('templates')
+            #print(self.template_generator.templates)
+            #print(len(self.template_generator.templates))
             for a in adm:
                 cur_t[a.template_id] = 1
                 obj_t.update(a.obj_ids)
@@ -176,7 +176,7 @@ class KGA2CTrainer(object):
 
             # Log template/object predictions/ground_truth
             gt_tmpls = [self.template_generator.templates[i] for i in tmpl_gt_tt[0].nonzero().squeeze().cpu().numpy().flatten().tolist()]
-            print(gt_tmpls)
+            #print(gt_tmpls)
             gt_objs = [self.vocab_act[i] for i in obj_mask_gt_tt[0,0].nonzero().squeeze().cpu().numpy().flatten().tolist()]
             log('TmplPred: {} GT: {}'.format(tmpl_pred_str, ', '.join(gt_tmpls)))
             topk_o1_probs, topk_o1_idxs = F.softmax(obj_pred_tt[0,0]).topk(5)
@@ -186,7 +186,7 @@ class KGA2CTrainer(object):
             log('ObjtPred: {} GT: {}'.format(o1_pred_str, ', '.join(gt_objs))) # , ', '.join(graph_mask_str)))
 
             chosen_actions = self.decode_actions(dec_tmpl_tt, dec_obj_tt)
-            print(chosen_actions)
+            #print(chosen_actions)
             obs, rewards, dones, infos, graph_infos = self.vec_env.step(chosen_actions)
             tb.logkv_mean('TotalStepsPerEpisode', sum([i['steps'] for i in infos]) / float(len(graph_infos)))
             tb.logkv_mean('Valid', infos[0]['valid'])
@@ -199,6 +199,32 @@ class KGA2CTrainer(object):
                 if done:
                     tb.logkv_mean('EpisodeScore', info['score'])
             rew_tt = torch.FloatTensor(rewards).cuda().unsqueeze(1)
+            #print(rew_tt.shape)
+            rewardx = []
+            for o in clean(obs):
+                r = 0
+                if "someone" in clean(obs):
+                    r = r + 1
+                if "shower" in clean(obs):
+                    r = r + 3
+                if "car" in clean(obs):
+                    r = r  + 5
+                if "wallet" in clean(obs):
+                    r = r + 3
+                if "clothes" in clean(obs):
+                    r = r + 3
+                if "Loungent Technologies" in clean(obs):
+                    r = r + 50
+                if "cubicle" in clean(obs):
+                    r = r + 100
+                if "Bowman" in clean(obs):
+                    r = r + 500
+                rewardx.append(r)
+
+            torch.tensor(rewardx)
+            rew = rew_tt
+            rew_tt = torch.add(rewardx,rew)
+            #print(rew_tt)
             done_mask_tt = (~torch.tensor(dones)).float().cuda().unsqueeze(1)
             self.model.reset_hidden(done_mask_tt)
             transitions.append((tmpl_pred_tt, obj_pred_tt, value, rew_tt,
@@ -212,7 +238,8 @@ class KGA2CTrainer(object):
                 graph_mask_tt = self.generate_graph_mask(graph_infos)
                 graph_state_reps = [g.graph_state_rep for g in graph_infos]
                 scores = [info['score'] for info in infos]
-                _, _, _, _, next_value, _ = self.model(obs_reps, scores, graph_state_reps, graph_mask_tt)
+                descs = [g.description for g in graph_infos] # get desc #SJF
+                _, _, _, _, next_value, _ = self.model(obs_reps, scores, graph_state_reps, graph_mask_tt,descs) #SJF
                 returns, advantages = self.discount_reward(transitions, next_value)
                 log('Returns: ', ', '.join(['{:.3f}'.format(a[0].item()) for a in returns]))
                 log('Advants: ', ', '.join(['{:.3f}'.format(a[0].item()) for a in advantages]))

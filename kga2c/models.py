@@ -290,7 +290,10 @@ class KGA2C(nn.Module):
         topi = softmax_out.multinomial(num_samples=1) #These are the BATCH_SIZE number of action templates 
 
         print("Before BERT:")
-        print(list(map(self.num_to_template,softmax_out.multinomial(num_samples=10))))
+        fl = []
+        for x in softmax_out.multinomial(num_samples=10):
+            fl.append(x[0])
+        print(list(map(self.num_to_template,fl)))
         #Map index to self.template_generator.templates
 
         # Sample all ids
@@ -326,21 +329,18 @@ class KGA2C(nn.Module):
         # Then for each template combine them with BERT's NSP output, combine 2 matricies (addition? subtraction?)
         comb_softmax = torch.tensor(combsamp).cuda() * softmax_out.cuda()
 
-        #print(comb_softmax)
         USE_BERT = True #TODO:eventually this will be in train.py args... 
         if USE_BERT == True:
             topi = comb_softmax.multinomial(num_samples=1)
 
-        # Sample top 1 at first
         print("After BERT:")
-        print(list(map(self.num_to_template,comb_softmax.multinomial(num_samples=10))))
-        #print(topi)
-        #print(topy)
+        fl = []
+        for x in comb_softmax.multinomial(num_samples=10):
+            fl.append(x[0])
+        print(list(map(self.num_to_template,fl)))
 
-        #print(topi)
         #topi = decoder_t_output.topk(1)[1]#self.params['k'])
 
-        #BERT model goes here. Take top k
         for i in range(batch):
             #print(topi[i].squeeze().detach().item())
             #print(self.templates[topi[i].squeeze().detach().item()])
