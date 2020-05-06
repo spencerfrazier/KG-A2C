@@ -53,11 +53,12 @@ class BERT():
                 # encode every string with the BERT tokenizer
                 te = list(map(self.encode,tunk) )
 
+            print(te)
             #ginput_ids = torch.tensor(tokenizer.encode("", add_special_tokens=True)).unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZE
-            ginput_ids = torch.tensor(te)#.unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZE
+            ginput_ids = torch.tensor(te)#.unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZEge
             glabels = torch.tensor([1]).unsqueeze(0).cuda()
 
-            print(ginput_ids)
+            print(ginput_ids.shape)
             goutputs = self.model(ginput_ids.long(), labels=glabels)
             gloss, glogits = goutputs[:2]
 
