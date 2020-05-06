@@ -24,25 +24,34 @@ GGCLASSES = ['negative','positive']
 
 class BERT():
     def __init__(self):
-        self.tokenizer = tokenizer = BertTokenizer('./models/floydvocab.txt', do_lower_case=True)
+        self.tokenizer = tokenizer = BertTokenizer('./models/vocab.txt', do_lower_case=True)
         self.model = BertForSequenceClassification.from_pretrained('./models/', cache_dir=None, from_tf=False, state_dict=None).to("cuda:0")
 
     def encode(s):
         return tokenizer.encode(s, add_special_tokens=True)
 
+    def replaceOBJ(s):
+        return s.replace("OBJ","<UNK>")
+
     def predict(s_input=[], batch_size = 8, template_count=80):
+
         with torch.no_grad():
             # Performce sequence classification inference, BERT_BATCH_SIZE = len(templates) * BATCH_SIZE
-            p = s_input
-            if len(s_input) == 0:
-                t = ["nothing here. go north"] * (template_count * batch_size)
-                te = map(self.encode,t) # encode every string
-                #p = [t] * batch_size
-
             #convert p to 1 dimensional tensor
             #pc = conversion to 1D voodoo
-            #pe = map(self.encode,t) # encode every string
-            ginput_ids = torch.tensor(tokenizer.encode("", add_special_tokens=True)).unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZE
+            p = s_input
+            te = []
+            if len(s_input) == 0:
+                t = ["nothing here. go north"] * (template_count * batch_size)
+                # Replace OBJ with <UNK>
+                tunk = map(self.replaceOBJ,t)
+                # encode every string with the BERT tokenizer
+                te = map(self.encode,tunk) 
+                #p = [t] * batch_size
+
+            
+            #ginput_ids = torch.tensor(tokenizer.encode("", add_special_tokens=True)).unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZE
+            ginput_ids = torch.tensor(te).unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZE
             glabels = torch.tensor([1]).unsqueeze(0).cuda()
 
             goutputs = self.model(ginput_ids, labels=glabels)
@@ -171,6 +180,9 @@ class KGA2C(nn.Module):
         self.softmax = nn.Softmax(dim=1)
         self.critic = nn.Linear(100, 1)
 
+    def num_to_template(self,n):
+        return self.template_generator.templates[n]
+
     def get_action_rep(self, action):
         action = str(action)
         decode_step = action.count('OBJ')
@@ -233,7 +245,7 @@ class KGA2C(nn.Module):
         softmax_out = self.softmax(decoder_t_output)
         topi = softmax_out.multinomial(num_samples=1) #These are the BATCH_SIZE number of action templates 
         #Map index to self.template_generator.templates
-
+        print(topi)
         # First take the probability distribution (logits) for all the templates (BATCH_SIZE x len(self.template_generator.templates))
         topy = softmax_out
 
@@ -241,11 +253,18 @@ class KGA2C(nn.Module):
         # TopN shape is 8x80
         topn = softmax_out.multinomial(num_samples=len(self.template_generator.templates))
 
-        # Replace OBJ with <UNK>
+        # map nums to string then send the list to bert to predict (as a flat list to map with the bert tokenizer)
+        topn_flat = torch.flatten(topn).tolist()
+        topn_str = map(self.num_to_template,topn_flat)
 
-        self.bert.predict()
+        bert_softmax = self.bert.predict(s_input = topn_str)
 
         # For each action, combine 2 matricies (addition? subtraction?)
+        comb_softmax = bert_softmax + softmax_out
+
+        USE_BERT == True #TODO:eventually this will be in train.py args... 
+        if USE_BERT == True:
+            topi = comb_softmax.multinomial(num_samples=1)
 
         # Sample top 1 at first
 
