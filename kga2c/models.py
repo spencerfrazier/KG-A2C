@@ -26,23 +26,41 @@ class BERT():
     def __init__(self):
         self.tokenizer = tokenizer = BertTokenizer('./models/floydvocab.txt', do_lower_case=True)
         self.model = BertForSequenceClassification.from_pretrained('./models/', cache_dir=None, from_tf=False, state_dict=None).to("cuda:0")
-    def predict(inputTensor=[], batch_size = 8, template_count=80):
+
+    def encode(s):
+        return tokenizer.encode(s, add_special_tokens=True)
+
+    def predict(s_input=[], batch_size = 8, template_count=80):
         with torch.no_grad():
             # Performce sequence classification inference, BERT_BATCH_SIZE = len(templates) * BATCH_SIZE
-            
-            ginput_ids = torch.tensor(tokenizer.encode(desc+'. He '+infos["admissible_commands"][idx], add_special_tokens=True)).unsqueeze(0).cuda() # Batch size 1
-            glabels = torch.tensor([batch_size*template_count]).unsqueeze(0).cuda()  # Batch size 8
-            goutputs = ggmodel(ginput_ids, labels=glabels)
+            p = s_input
+            if len(s_input) == 0:
+                t = ["nothing here. go north"] * (template_count * batch_size)
+                te = map(self.encode,t) # encode every string
+                #p = [t] * batch_size
+
+            #convert p to 1 dimensional tensor
+            #pc = conversion to 1D voodoo
+            #pe = map(self.encode,t) # encode every string
+            ginput_ids = torch.tensor(tokenizer.encode("", add_special_tokens=True)).unsqueeze(0).cuda() # Batch size = len(templates) * BATCH_SIZE
+            glabels = torch.tensor([1]).unsqueeze(0).cuda()
+
+            goutputs = self.model(ginput_ids, labels=glabels)
             gloss, glogits = goutputs[:2]
+
+            r = glogits #needs to be converted
+            print(len(r))
+            assert( len(r) == batch_size * template_count)
             #print("BERT TEST OUT: {},{}".format(loss,logits))
-            classification_index = max(range(len(glogits[0])), key=glogits[0].__getitem__)
+            #classification_index = max(range(len(glogits[0])), key=glogits[0].__getitem__)
             #print(GGCLASSES[classification_index])
-            BERT_neg_reward = glogits[0][0].item()
+            #BERT_neg_reward = glogits[0][0].item()
             #neg_values_per_command.append(BERT_neg_reward)
-            BERT_pos_reward = glogits[0][1].item()
+            #BERT_pos_reward = glogits[0][1].item()
             # Reshape result back to 8x80
             #return an 8x80 tensor
-            return []
+            rs = torch.split(r, batch_size)
+            return rs
 
 class GAT(nn.Module):
     def __init__(self, nfeat, nhid, dropout, alpha, nheads):
@@ -225,7 +243,7 @@ class KGA2C(nn.Module):
 
         # Replace OBJ with <UNK>
 
-        self.bert()
+        self.bert.predict()
 
         # For each action, combine 2 matricies (addition? subtraction?)
 
