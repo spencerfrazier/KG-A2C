@@ -1,5 +1,5 @@
 import os
-from gdqn import KGA2CTrainer
+from gdqn_mod import KGA2CTrainer
 import argparse
 
 #python3 train.py --rom_file_path roms/905.z5 --openie_path ../stanford-corenlp-full-2018-10-05 --tsv_file ../data/905_entity2id.tsv
@@ -42,6 +42,7 @@ def parse_args():
     parser.add_argument('--no-gat', dest='gat', action='store_false')
     parser.add_argument('--use_bert', default=True, type=bool)
     parser.add_argument('--masking', default='kg', choices=['kg', 'interactive', 'none'], help='Type of object masking applied')
+
     parser.set_defaults(gat=True)
     args = parser.parse_args()
     params = vars(args)
