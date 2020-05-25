@@ -9,6 +9,9 @@ import numpy as np
 import time
 import sentencepiece as spm
 from statistics import mean
+import nltk as nltk
+
+
 
 from jericho import *
 from jericho.template_action_generator import TemplateActionGenerator
@@ -20,6 +23,12 @@ from models import KGA2C
 from env import *
 from vec_env import *
 import logger
+from comet.comet_graph import CometHelper
+
+# import wandb
+# wandb.init(project="kg-a2c")
+
+import progressbar
 
 
 device = torch.device("cuda")
@@ -27,10 +36,10 @@ device = torch.device("cuda")
 
 def configure_logger(log_dir):
     logger.configure(log_dir, format_strs=['log'])
-    global tb
-    tb = logger.Logger(log_dir, [logger.make_output_format('tensorboard', log_dir),
-                                 logger.make_output_format('csv', log_dir),
-                                 logger.make_output_format('stdout', log_dir)])
+    # global tb
+    # tb = logger.Logger(log_dir, [logger.make_output_format('tensorboard', log_dir),
+    #                              logger.make_output_format('csv', log_dir),
+    #                              logger.make_output_format('stdout', log_dir)])
     global log
     log = logger.log
 
@@ -42,7 +51,7 @@ class KGA2CTrainer(object):
 
 
     '''
-    def __init__(self, params):
+    def __init__(self, params, args):
         configure_logger(params['output_dir'])
         log('Parameters {}'.format(params))
         self.params = params
@@ -50,15 +59,25 @@ class KGA2CTrainer(object):
         self.max_word_length = self.binding['max_word_length']
         self.sp = spm.SentencePieceProcessor()
         self.sp.Load(params['spm_file'])
+        self.use_cs = self.params['use_cs']
+        if(self.use_cs == True):
+             self.kg_extract = CometHelper(args)
         kg_env = KGA2CEnv(params['rom_file_path'], params['seed'], self.sp,
                           params['tsv_file'], step_limit=params['reset_steps'],
                           stuck_steps=params['stuck_steps'], gat=params['gat'])
+        
+
         self.vec_env = VecEnv(params['batch_size'], kg_env, params['openie_path'])
         self.template_generator = TemplateActionGenerator(self.binding)
         env = FrotzEnv(params['rom_file_path'])
         self.vocab_act, self.vocab_act_rev = load_vocab(env)
+        torch.cuda.set_device(int(self.params['device_a2c']))
         self.model = KGA2C(params, self.template_generator.templates, self.max_word_length,
-                           self.vocab_act, self.vocab_act_rev, len(self.sp), gat=self.params['gat']).cuda()
+                           self.vocab_act, self.vocab_act_rev, len(self.sp), a2c_device=(int(self.params['device_a2c'])),
+                           bert_device =int(self.params['device_bert']), 
+                           gat=self.params['gat'])
+                           
+        print(torch.cuda.current_device())
         self.batch_size = params['batch_size']
         if params['preload_weights']:
             self.model = torch.load(self.params['preload_weights'])['model']
@@ -67,6 +86,8 @@ class KGA2CTrainer(object):
         self.loss_fn1 = nn.BCELoss()
         self.loss_fn2 = nn.BCEWithLogitsLoss()
         self.loss_fn3 = nn.MSELoss()
+        
+        self.args = args
 
 
     def generate_targets(self, admissible, objs):
@@ -83,9 +104,6 @@ class KGA2CTrainer(object):
         for adm in admissible:
             obj_t = set()
             cur_t = [0] * len(self.template_generator.templates)
-            #print('templates')
-            #print(self.template_generator.templates)
-            #print(len(self.template_generator.templates))
             for a in adm:
                 cur_t[a.template_id] = 1
                 obj_t.update(a.obj_ids)
@@ -152,18 +170,26 @@ class KGA2CTrainer(object):
         start = time.time()
         transitions = []
         obs, infos, graph_infos = self.vec_env.reset()
-        # Variable to hold new reward
+        obs_memory = ""
+        act_mem = ""
+        cs_graph = None
         complete = np.zeros(self.params['batch_size']).astype(int)
-        for step in range(1, max_steps + 1):
+        for step in progressbar.progressbar(range(1, max_steps + 1)):
             tb.logkv('Step', step)
-            descs = [g.description for g in graph_infos] # get desc #SJF
-            obs_reps = np.array([g.ob_rep for g in graph_infos]) 
-            graph_mask_tt = self.generate_graph_mask(graph_infos) 
-            graph_state_reps = [g.graph_state_rep for g in graph_infos] 
-            scores = [info['score'] for info in infos]
+            print(self.use_cs)
 
+            # wandb.log({'Step': step})
+
+            descs = [g.description for g in graph_infos] # get desc #SJF
+
+            obs_reps = np.array([g.ob_rep for g in graph_infos])
+            graph_mask_tt = self.generate_graph_mask(graph_infos)
+            graph_state_reps = [g.graph_state_rep for g in graph_infos]
+            scores = [info['score'] for info in infos]
             tmpl_pred_tt, obj_pred_tt, dec_obj_tt, dec_tmpl_tt, value, dec_steps = self.model(
-                obs_reps, scores, graph_state_reps, graph_mask_tt, descs) #SJF
+                obs_reps, scores, graph_state_reps, graph_mask_tt, descs)
+
+            # wandb.log({'Value': value.mean().item()})
             tb.logkv_mean('Value', value.mean().item())
 
             # Log the predictions and ground truth values
@@ -178,7 +204,6 @@ class KGA2CTrainer(object):
 
             # Log template/object predictions/ground_truth
             gt_tmpls = [self.template_generator.templates[i] for i in tmpl_gt_tt[0].nonzero().squeeze().cpu().numpy().flatten().tolist()]
-            #print(gt_tmpls)
             gt_objs = [self.vocab_act[i] for i in obj_mask_gt_tt[0,0].nonzero().squeeze().cpu().numpy().flatten().tolist()]
             log('TmplPred: {} GT: {}'.format(tmpl_pred_str, ', '.join(gt_tmpls)))
             topk_o1_probs, topk_o1_idxs = F.softmax(obj_pred_tt[0,0]).topk(5)
@@ -188,13 +213,17 @@ class KGA2CTrainer(object):
             log('ObjtPred: {} GT: {}'.format(o1_pred_str, ', '.join(gt_objs))) # , ', '.join(graph_mask_str)))
 
             chosen_actions = self.decode_actions(dec_tmpl_tt, dec_obj_tt)
-            #print(chosen_actions)
-            obs, rewards, dones, infos, graph_infos = self.vec_env.step(chosen_actions)
 
-            ## Calculating new reward
+            #####
+            ## GENERATING THE COMMONSENSE KNOWLEDGE GRAPH BASED ON OBSERVED TRIPLES
+            obs, rewards, dones, infos = self.vec_env.step(chosen_actions)
             obs = list(obs)
             for ind, ob in enumerate(obs):
+                
+                # if(ob.find('Bedroom') != -1):
+                #     obs[ind] = ob.replace("Cleaner clothing can be found in the", "There is a")
                 if(ob.find('Bathroom') != -1):
+                    # ob = ob.replace(", with a sink, toilet and shower", "")
                     complete[ind] = 1
                 if(ob.find('Living room') != -1 and complete[ind] == 1):
                     complete[ind] = 2
@@ -203,30 +232,57 @@ class KGA2CTrainer(object):
                 if(ob.find('Driving') != -1 and complete[ind] == 3):
                     complete[ind] = 4
             obs = tuple(obs)
+            # print(obs)
+            # print(complete)
+            if(self.use_cs == True):
+
+                cs_graph = [None]*len(obs)
+                for idx,ob in enumerate(obs):
+                    pos_tags  = (nltk.pos_tag(nltk.word_tokenize(str(obs[idx]))))
+                    comet_input = []
+                    for tag in pos_tags:
+                        if(tag[1] == 'NN' or tag[1] == 'NNS'):
+                            comet_input.append(tag[0])
+                    nouns = [] 
+
+                    [nouns.append(x) for x in comet_input if x not in nouns]  
+                    cs_graph[idx] = self.kg_extract.make_graph(nouns)
+
+                graph_infos = self.vec_env.step(chosen_actions, obs = obs, done = dones,make_graph=1, use_cs = True, cs_graph = cs_graph)
 
 
+            ######
+            else:
+
+                graph_infos = self.vec_env.step(chosen_actions, obs = obs, done = dones, make_graph=1, use_cs = False, cs_graph = cs_graph)
+            
             tb.logkv_mean('TotalStepsPerEpisode', sum([i['steps'] for i in infos]) / float(len(graph_infos)))
+            # wandb.log({'TotalStepsPerEpisode': sum([i['steps'] for i in infos]) / float(len(graph_infos))})
             tb.logkv_mean('Valid', infos[0]['valid'])
+            # wandb.log({'Valid': infos[0]['valid']})
             log('Act: {}, Rew {}, Score {}, Done {}, Value {:.3f}'.format(
                 chosen_actions[0], rewards[0], infos[0]['score'], dones[0], value[0].item()))
             log('Obs: {}'.format(clean(obs[0])))
             if dones[0]:
                 log('Step {} EpisodeScore {}\n'.format(step, infos[0]['score']))
-
             for ind, (done, info) in enumerate(zip(dones, infos)):
                 if done:
+                    # tb.logkv_mean('EpisodeScore', info['score'])
+                    # print(rewards)
+                    # print(complete)
                     if(complete[ind] == 5):
-                        tb.logkv_mean({'EpisodeScore': 1})
+                        # wandb.log({'EpisodeScore': 1})
+                        tb.logkv('EpisodeScore', 1)
                     else:
-                        tb.logkv_mean({'EpisodeScore': 0})
-                    tb.logkv_mean({'EpisodeReward': complete[ind]})
+                        # wandb.log({'EpisodeScore': 0})
+                        tb.logkv('EpisodeScore', 0)
+                    # wandb.log({'EpisodeReward': complete[ind]})
+                    tb.logkv('EpisodeReward', complete[ind])
+
+                    # wandb.log({'EpisodeReward': rewards[ind]})
                     complete[ind] = 0
-
-            ## Replacing rewards from environment with calculated room rewards
-            rewards = complete
-
-            rew_tt = torch.FloatTensor(rewards).cuda().unsqueeze(1)
-            #print(rew_tt)
+            rew_tt = torch.FloatTensor(tuple(complete)).cuda().unsqueeze(1)
+            # rew_tt = torch.FloatTensor(rewards).cuda().unsqueeze(1)
             done_mask_tt = (~torch.tensor(dones)).float().cuda().unsqueeze(1)
             self.model.reset_hidden(done_mask_tt)
             transitions.append((tmpl_pred_tt, obj_pred_tt, value, rew_tt,
@@ -235,24 +291,27 @@ class KGA2CTrainer(object):
 
             if len(transitions) >= self.params['bptt']:
                 tb.logkv('StepsPerSecond', float(step) / (time.time() - start))
+                # wandb.log({'StepsPerSecond': float(step) / (time.time() - start)})
                 self.model.clone_hidden()
                 obs_reps = np.array([g.ob_rep for g in graph_infos])
                 graph_mask_tt = self.generate_graph_mask(graph_infos)
                 graph_state_reps = [g.graph_state_rep for g in graph_infos]
-                scores = [info['score'] for info in infos]
+                # scores = [info['score'] for info in infos]
+                scores = (complete)
                 descs = [g.description for g in graph_infos] # get desc #SJF
-                _, _, _, _, next_value, _ = self.model(obs_reps, scores, graph_state_reps, graph_mask_tt,descs) #SJF
+                _, _, _, _, next_value, _ = self.model(obs_reps, scores, graph_state_reps, graph_mask_tt, descs)
                 returns, advantages = self.discount_reward(transitions, next_value)
                 log('Returns: ', ', '.join(['{:.3f}'.format(a[0].item()) for a in returns]))
                 log('Advants: ', ', '.join(['{:.3f}'.format(a[0].item()) for a in advantages]))
                 tb.logkv_mean('Advantage', advantages[-1].median().item())
+                # wandb.log({'Advantage': advantages[-1].median().item()})
                 loss = self.update(transitions, returns, advantages)
                 del transitions[:]
                 self.model.restore_hidden()
 
             if step % self.params['checkpoint_interval'] == 0:
                 parameters = { 'model': self.model }
-                torch.save(parameters, os.path.join(self.params['output_dir'], 'kga2c.pt'))
+                torch.save(parameters, os.path.join(self.params['output_dir'], 'kga2c_zork_cs.pt'))
 
         self.vec_env.close_extras()
 
@@ -300,6 +359,8 @@ class KGA2CTrainer(object):
             if cnt > 0:
                 policy_obj_loss /= cnt
             tb.logkv_mean('PolicyObjLoss', policy_obj_loss.item())
+            # wandb.log({'PolicyObjLoss': policy_obj_loss.item()})
+
             log_probs_obj = F.log_softmax(obj_pred_tt, dim=2)
 
             log_probs_tmpl = F.log_softmax(tmpl_pred_tt, dim=1)
@@ -307,14 +368,19 @@ class KGA2CTrainer(object):
 
             policy_tmpl_loss = (-action_log_probs_tmpl * adv.detach().squeeze()).mean()
             tb.logkv_mean('PolicyTemplateLoss', policy_tmpl_loss.item())
+            # wandb.log({'PolicyTemplateLoss': policy_tmpl_loss.item()})
 
             policy_loss = policy_tmpl_loss + policy_obj_loss
 
             value_loss = self.params['value_coeff'] * self.loss_fn3(value, ret)
             tmpl_entropy = -(tmpl_probs * log_probs_tmpl).mean()
             tb.logkv_mean('TemplateEntropy', tmpl_entropy.item())
+            # wandb.log({'TemplateEntropy': tmpl_entropy.item()})
+
             object_entropy = -(obj_probs * log_probs_obj).mean()
             tb.logkv_mean('ObjectEntropy', object_entropy.item())
+            # wandb.log({'ObjectEntropy': object_entropy.item()})
+
             # Minimizing entropy loss will lead to increased entropy
             entropy_loss = self.params['entropy_coeff'] * -(tmpl_entropy + object_entropy)
 
@@ -327,14 +393,29 @@ class KGA2CTrainer(object):
         tb.logkv('ValueLoss', value_loss.item())
         tb.logkv('EntropyLoss', entropy_loss.item())
         tb.dumpkvs()
+        # wandb.log({'Loss': loss.item()})
+        # wandb.log({'TemplateLoss': template_loss.item()})
+        # wandb.log({'ObjectLoss': object_mask_loss.item()})
+        # wandb.log({'PolicyLoss': policy_loss.item()})
+        # wandb.log({'ValueLoss': value_loss.item()})
+        # wandb.log({'EntropyLoss': entropy_loss.item()})
+
+
+        # log ('Loss', loss.item())
+        # log('TemplateLoss', template_loss.item())
+        # # print('ObjectLoss', object_mask_loss.item())
+        # # print('PolicyLoss', policy_loss.item())
+        # # print('ValueLoss', value_loss.item())
+        # # print('EntropyLoss', entropy_loss.item())
         loss.backward()
 
         # Compute the gradient norm
         grad_norm = 0
         for p in list(filter(lambda p: p.grad is not None, self.model.parameters())):
             grad_norm += p.grad.data.norm(2).item()
+            
         tb.logkv('UnclippedGradNorm', grad_norm)
-
+        # wandb.log({'UnclippedGradNorm': grad_norm})
         nn.utils.clip_grad_norm_(self.model.parameters(), self.params['clip'])
 
         # Clipped Grad norm
@@ -342,6 +423,7 @@ class KGA2CTrainer(object):
         for p in list(filter(lambda p: p.grad is not None, self.model.parameters())):
             grad_norm += p.grad.data.norm(2).item()
         tb.logkv('ClippedGradNorm', grad_norm)
+        # wandb.log({'ClippedGradNorm': grad_norm})
 
         self.optimizer.step()
         self.optimizer.zero_grad()

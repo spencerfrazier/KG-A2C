@@ -6,9 +6,11 @@ import random
 import jericho
 from jericho.template_action_generator import *
 from jericho.defines import TemplateAction
-import re
+import nltk as nltk
 
-GraphInfo = collections.namedtuple('GraphInfo', 'objs, ob_rep, act_rep, graph_state, graph_state_rep, admissible_actions, admissible_actions_rep, description') #SJF
+
+
+GraphInfo = collections.namedtuple('GraphInfo', 'objs, ob_rep, act_rep, graph_state, graph_state_rep, admissible_actions, admissible_actions_rep, description')
 
 def load_vocab(env):
     vocab = {i+2: str(v) for i, v in enumerate(env.get_dictionary())}
@@ -30,7 +32,7 @@ class KGA2CEnv:
     KGA2C environment performs additional graph-based processing.
 
     '''
-    def __init__(self, rom_path, seed, spm_model, tsv_file, step_limit=None, stuck_steps=10, gat=True):
+    def __init__(self, rom_path, seed, spm_model, tsv_file,step_limit=None, stuck_steps=10, gat=True):
         random.seed(seed)
         np.random.seed(seed)
         self.rom_path        = rom_path
@@ -49,6 +51,8 @@ class KGA2CEnv:
         self.vocab           = None
         self.vocab_rev       = None
         self.state_rep       = None
+        # self.cs_model = cs_model
+
 
 
     def create(self):
@@ -80,8 +84,10 @@ class KGA2CEnv:
         return admissible
 
 
-    def _build_graph_rep(self, action, ob_r):
+    def _build_graph_rep(self, action, ob_r, cs_graph = None):
         ''' Returns various graph-based representations of the current state. '''
+
+        ## MODIFY THIS FUNCTION TO INCORPORATE ASKBERT
         objs = [o[0] for o in self.env.identify_interactive_objects(ob_r)]
         objs.append('all')
         admissible_actions = self._get_admissible_actions(objs)
@@ -101,11 +107,15 @@ class KGA2CEnv:
         cleaned_obs = clean_obs(ob_l + ' ' + ob_r)
         openie_cache = self.conn_openie.get(cleaned_obs)
         if openie_cache is None:
-            rules, tocache = self.state_rep.step(cleaned_obs, ob_i, objs, action, cache=None, gat=self.gat)
+            rules, tocache = self.state_rep.step(cleaned_obs, ob_i, objs, action, cache=None, gat=self.gat, cs_graph = cs_graph)
+            # rules, tocache = self.state_rep.step(cleaned_obs, ob_i, objs, action, cache=None, gat=self.gat)
+
             self.conn_openie.set(cleaned_obs, str(tocache))
         else:
             openie_cache = eval(openie_cache.decode('cp1252'))
-            rules, _ = self.state_rep.step(cleaned_obs, ob_i, objs, action, cache=openie_cache, gat=self.gat)
+            rules, _ = self.state_rep.step(cleaned_obs, ob_i, objs, action, cache=openie_cache, gat=self.gat, cs_graph = cs_graph)
+            # rules, _ = self.state_rep.step(cleaned_obs, ob_i, objs, action, cache=openie_cache, gat=self.gat)
+            
         graph_state = self.state_rep.graph_state
         graph_state_rep = self.state_rep.graph_state_rep
         action_rep = self.state_rep.get_action_rep_drqa(action)
@@ -113,12 +123,25 @@ class KGA2CEnv:
         desc_clean_array = desc.split('\n') #SJF
         desc_clean = re.sub(' +', ' ',' '.join(desc_clean_array))
         return GraphInfo(objs, ob_rep, action_rep, graph_state, graph_state_rep,\
-                         admissible_actions, admissible_actions_rep, desc_clean ) #SJF
+                         admissible_actions, admissible_actions_rep,desc_clean)
 
 
-    def step(self, action):
+    def step(self, action, cs_graph = None):
         self.episode_steps += 1
         obs, reward, done, info = self.env.step(action)
+        
+        # if(reward == 0):
+        #     if(obs.find('Bathroom') != -1):
+        #         reward = 1
+        #     if(obs.find('Living room') != -1):
+        #         reward = 2
+        #     if(obs.find('Driveway') != -1):
+        #         reward = 3
+        #     if(obs.find('Driving') != -1):
+        #         reward = 4
+        # else:
+        #     reward = 5
+
         info['valid'] = self.env.world_changed() or done
         info['steps'] = self.episode_steps
         if info['valid']:
@@ -129,6 +152,21 @@ class KGA2CEnv:
         if (self.step_limit and self.valid_steps >= self.step_limit) \
            or self.stuck_steps > self.max_stuck_steps:
             done = True
+        # if done:
+        #     graph_info = GraphInfo(objs=['all'],
+        #                            ob_rep=self.state_rep.get_obs_rep(obs, obs, obs, action),
+        #                            act_rep=self.state_rep.get_action_rep_drqa(action),
+        #                            graph_state=self.state_rep.graph_state,
+        #                            graph_state_rep=self.state_rep.graph_state_rep,
+        #                            admissible_actions=[],
+        #                            admissible_actions_rep=[])
+        # else:
+        #     graph_info = self._build_graph_rep(action, obs, cs_graph)
+
+
+        return obs, reward, done, info
+
+    def step_graph(self, action, obs , done,cs_graph = None):
         if done:
             graph_info = GraphInfo(objs=['all'],
                                    ob_rep=self.state_rep.get_obs_rep(obs, obs, obs, action),
@@ -139,9 +177,9 @@ class KGA2CEnv:
                                    admissible_actions_rep=[],
                                    description=["None"]) #SJF
         else:
-            graph_info = self._build_graph_rep(action, obs)
-        return obs, reward, done, info, graph_info
+            graph_info = self._build_graph_rep(action, obs, cs_graph)
 
+        return graph_info
 
     def reset(self):
         self.state_rep = StateAction(self.spm_model, self.vocab, self.vocab_rev,

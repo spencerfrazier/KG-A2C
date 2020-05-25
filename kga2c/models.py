@@ -26,10 +26,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 GGCLASSES = ['negative','positive']
 
 class BERT():
-    def __init__(self):
+    def __init__(self, bert_device):
         #self.tokenizer = tokenizer = BertTokenizer('./models/vocab.txt', do_lower_case=True)
         #self.model = BertForSequenceClassification.from_pretrained('./models/', cache_dir=None, from_tf=False, state_dict=None).to("cuda:0")
-        self.model = BertForNextSentencePrediction.from_pretrained('bert-base-uncased').cuda()
+        self.bert_device = bert_device
+        self.model = BertForNextSentencePrediction.from_pretrained('bert-base-uncased').cuda(self.bert_device)
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.max_seq_len = 128 #TODO: Dont hard code this
 
@@ -52,10 +53,10 @@ class BERT():
             #Encode both text sequences into BERT-recognized IDs
             enc_ids = list(map(self.encodeAndPadNormClassifier,s_input))
             enc_labels = list(map(self.encodeAndPadNormClassifier,s_labels_noOBJ))
-
-            input_ids = torch.tensor(enc_ids).unsqueeze(0).cuda()
-            input_ids = input_ids.squeeze(1).squeeze(0).cuda() #TODO FIX SQUEEZING
-            enc_ids = torch.tensor(enc_labels).cuda()
+            # print(len(enc_ids))
+            input_ids = torch.tensor(enc_ids).unsqueeze(0).cuda(self.bert_device)
+            input_ids = input_ids.squeeze(1).squeeze(0).cuda(self.bert_device) #TODO FIX SQUEEZING
+            enc_ids = torch.tensor(enc_labels).cuda(self.bert_device)
 
             #Make NSP predictions
             goutputs = self.model(input_ids,enc_ids)
@@ -98,13 +99,13 @@ class BERT():
                 ti = list(map(self.encodeAndPad,tunk) )
 
             #input sequences need to be the environment description
-            ginput_ids = torch.tensor(di).unsqueeze(0).cuda()
-            ginput_ids = ginput_ids.squeeze(1).squeeze(0).cuda() # Batch size = len(templates) * BATCH_SIZEge
+            ginput_ids = torch.tensor(di).unsqueeze(0).cuda(self.bert_device)
+            ginput_ids = ginput_ids.squeeze(1).squeeze(0).cuda(self.bert_device) # Batch size = len(templates) * BATCH_SIZEge
 
             #labels here need to be the templates
-            glabels_ids = torch.tensor(ti).unsqueeze(0).cuda()
-            glabels_ids = glabels_ids.squeeze(1).cuda() # Batch size = len(templates) * BATCH_SIZEge
-            glabels = torch.tensor(glabels_ids).cuda()
+            glabels_ids = torch.tensor(ti).unsqueeze(0).cuda(self.bert_device)
+            glabels_ids = glabels_ids.squeeze(1).cuda(self.bert_device) # Batch size = len(templates) * BATCH_SIZEge
+            glabels = torch.tensor(glabels_ids).cuda(self.bert_device)
 
             #print(ginput_ids.shape)
             goutputs = self.model(ginput_ids.long(), labels=glabels.long())
@@ -192,36 +193,38 @@ class ObjectDecoder(nn.Module):
 
 class KGA2C(nn.Module):
     def __init__(self, params, templates, max_word_length, vocab_act,
-                 vocab_act_rev, input_vocab_size, gat=True):
+                 vocab_act_rev, input_vocab_size, a2c_device ,bert_device ,gat=True):
         super(KGA2C, self).__init__()
         self.templates = templates
         self.gat = gat
         self.max_word_length = max_word_length
-        self.bert = BERT()
+        self.a2c_device = a2c_device
+        self.bert_device = bert_device
+        self.bert = BERT(self.bert_device)
         self.vocab = vocab_act
         self.vocab_rev = vocab_act_rev
         self.batch_size = params['batch_size']
-        self.action_emb = nn.Embedding(len(vocab_act), params['embedding_size'])
-        self.state_emb = nn.Embedding(input_vocab_size, params['embedding_size'])
+        self.action_emb = nn.Embedding(len(vocab_act), params['embedding_size']).cuda(self.a2c_device)
+        self.state_emb = nn.Embedding(input_vocab_size, params['embedding_size']).cuda(self.a2c_device)
         self.action_drqa = ActionDrQA(input_vocab_size, params['embedding_size'],
-                                      params['batch_size'], params['recurrent'])
+                                      params['batch_size'], params['recurrent']).cuda(self.a2c_device)
         self.state_gat = StateNetwork(params['gat_emb_size'],
                                       vocab_act, params['embedding_size'],
-                                      params['dropout_ratio'], params['tsv_file'])
+                                      params['dropout_ratio'], params['tsv_file']).cuda(self.a2c_device)
         self.template_enc = EncoderLSTM(input_vocab_size, params['embedding_size'],
                                         int(params['hidden_size'] / 2),
                                         params['padding_idx'], params['dropout_ratio'],
-                                        self.action_emb)
+                                        self.action_emb).cuda(self.a2c_device)
         if not self.gat:
-            self.state_fc = nn.Linear(110, 100)
+            self.state_fc = nn.Linear(110, 100).cuda(self.a2c_device)
         else:
-            self.state_fc = nn.Linear(210, 100)
-        self.decoder_template = DecoderRNN(params['hidden_size'], len(templates))
+            self.state_fc = nn.Linear(210, 100).cuda(self.a2c_device)
+        self.decoder_template = DecoderRNN(params['hidden_size'], len(templates)).cuda(self.a2c_device)
         self.decoder_object = ObjectDecoder(50, 100, len(self.vocab.keys()),
                                             self.action_emb, params['graph_dropout'],
-                                            params['k_object'])
-        self.softmax = nn.Softmax(dim=1)
-        self.critic = nn.Linear(100, 1)
+                                            params['k_object']).cuda(self.a2c_device)
+        self.softmax = nn.Softmax(dim=1).cuda(self.a2c_device)
+        self.critic = nn.Linear(100, 1).cuda(self.a2c_device)
 
     def num_to_template(self,n):
         return self.templates[n]
@@ -270,7 +273,7 @@ class KGA2C(nn.Module):
             cur_st.extend([int(c) for c in '{0:09b}'.format(abs(scr))])
             src_t.append(cur_st)
 
-        src_t = torch.FloatTensor(src_t).cuda()
+        src_t = torch.FloatTensor(src_t).cuda(self.a2c_device)
 
         if not self.gat:
             state_emb = torch.cat((o_t, src_t), dim=1) 
@@ -327,7 +330,7 @@ class KGA2C(nn.Module):
 
         # Take KG-A2C's probability distribution (logits) for all the templates (BATCH_SIZE x len(self.template_generator.templates))
         # Then for each template combine them with BERT's NSP output, combine 2 matricies (addition? subtraction?)
-        comb_softmax = torch.tensor(combsamp).cuda() * softmax_out.cuda()
+        comb_softmax = torch.tensor(combsamp).cuda(self.a2c_device) * softmax_out.cuda(self.a2c_device)
 
         USE_BERT = True #TODO:eventually this will be in train.py args... 
         if USE_BERT == True:
@@ -350,9 +353,9 @@ class KGA2C(nn.Module):
             templ_enc_input.append(templ)
             decode_steps.append(decode_step)
 
-        decoder_o_input, decoder_o_hidden_init0, decoder_o_enc_oinpts = self.template_enc.forward(torch.tensor(templ_enc_input).cuda().clone())
+        decoder_o_input, decoder_o_hidden_init0, decoder_o_enc_oinpts = self.template_enc.forward(torch.tensor(templ_enc_input).cuda(self.a2c_device).clone())
 
-        decoder_o_output, decoded_o_words = self.decoder_object.forward(decoder_o_hidden_init0.cuda(), decoder_t_hidden.squeeze_(0).cuda(), self.vocab, self.vocab_rev, decode_steps, graphs)
+        decoder_o_output, decoded_o_words = self.decoder_object.forward(decoder_o_hidden_init0.cuda(self.a2c_device), decoder_t_hidden.squeeze_(0).cuda(self.a2c_device), self.vocab, self.vocab_rev, decode_steps, graphs)
 
         return decoder_t_output, decoder_o_output, decoded_o_words, topi, value, decode_steps#decoder_t_output#template_mask
 

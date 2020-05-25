@@ -2,8 +2,6 @@ import os
 from gdqn_mod import KGA2CTrainer
 import argparse
 
-#python3 train.py --rom_file_path roms/905.z5 --openie_path ../stanford-corenlp-full-2018-10-05 --tsv_file ../data/905_entity2id.tsv
-#python3 train.py --rom_file_path roms/905.z5 --tsv_file ../data/905_entity2id.tsv
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -40,17 +38,30 @@ def parse_args():
     parser.add_argument('--recurrent', default=True, type=bool)
     parser.add_argument('--checkpoint_interval', default=500, type=int)
     parser.add_argument('--no-gat', dest='gat', action='store_false')
-    parser.add_argument('--use_bert', default=True, type=bool)
     parser.add_argument('--masking', default='kg', choices=['kg', 'interactive', 'none'], help='Type of object masking applied')
+    parser.add_argument("--device_a2c", type=str, default="3")
 
-    parser.set_defaults(gat=True)
+    ## BERT Arguments
+    parser.add_argument('--use_bert', default=True, type=bool)
+    parser.add_argument('--device_bert',  type = str, default = "1")
+    ## KG Extraction Arguments
+    parser.add_argument('--use_cs',default=False, type=bool)
+    parser.add_argument("--device_comet", type=str, default="2")
+    parser.add_argument("--model_file", type=str, default="comet/models/1e-05_adam_64_15500.pickle")
+    parser.add_argument("--relation", type=str, default="UsedFor")
+    parser.add_argument("--sampling_algorithm", type=str, default="beam-3")
+
+
     args = parser.parse_args()
     params = vars(args)
-    return params
+    return args, params
+    # return params
 
 
 if __name__ == "__main__":
-    params = parse_args()
+    args, params = parse_args()
+    # params = parse_args()
     print(params)
-    trainer = KGA2CTrainer(params)
+    trainer = KGA2CTrainer(params, args)
+    # trainer = KGA2CTrainer(params)
     trainer.train(params['steps'])

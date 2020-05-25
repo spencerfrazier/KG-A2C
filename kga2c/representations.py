@@ -5,6 +5,7 @@ from fuzzywuzzy import fuzz
 from jericho.util import clean
 
 
+
 class StateAction(object):
 
     def __init__(self, spm, vocab, vocab_rev, tsv_file, max_word_len):
@@ -45,13 +46,30 @@ class StateAction(object):
 
         return {'entity': ent, 'relation': rel}
 
-    def update_state(self, visible_state, inventory_state, objs, prev_action=None, cache=None):
+    def update_state(self, visible_state, inventory_state, objs, prev_action=None, cache=None, cs_graph = None):
+
+        
 
         prev_room = self.room
+        if(cs_graph != None):
+            # for key in cs_graph:
+            #     print("JERE")
+            #     for edge in cs_graph["key"]:
+            #         edge = edge[self.relation]
+            #         subject = edge["e1"]
+            #         # relation = edge["relation"]
+            #         relation = "Capable Of"
+            #         predicate = edge["beams"]
+            #         for pred in (predicate):
+            #             self.graph_state.add_edge(subject, pred, rel=relation)
+            self.graph_state = nx.compose(cs_graph, self.graph_state)
+            # print("GRAPHHHH")
+            # print(self.graph_state.edges)
+        
 
+        # print(self.graph_state.edges)
         graph_copy = self.graph_state.copy()
         con_cs = [graph_copy.subgraph(c) for c in nx.weakly_connected_components(graph_copy)]
-
         prev_room_subgraph = None
         prev_you_subgraph = None
 
@@ -66,7 +84,6 @@ class StateAction(object):
                 graph_copy.remove_edge(*edge)
 
         self.graph_state = graph_copy
-
         visible_state = visible_state.split('\n')
         room = visible_state[0]
         visible_state = clean(' '.join(visible_state[1:]))
@@ -80,6 +97,7 @@ class StateAction(object):
             sents = openie.call_stanford_openie(self.visible_state)['sentences']
         else:
             sents = cache
+    
 
         if sents == "":
             return []
@@ -141,13 +159,15 @@ class StateAction(object):
             rules.append((str(o), 'in', room))
 
         add_rules = rules
-
+        ### ADDING NEW NODES DONE 
         for rule in add_rules:
             u = '_'.join(str(rule[0]).split())
             v = '_'.join(str(rule[2]).split())
             if u in self.vocab_kge['entity'].keys() and v in self.vocab_kge['entity'].keys():
                 if u != 'it' and v != 'it':
+                    # print(rule[0],"space", rule[2],"space",  rule[1])
                     self.graph_state.add_edge(rule[0], rule[2], rel=rule[1])
+        
 
         return add_rules, sents
 
@@ -214,8 +234,9 @@ class StateAction(object):
 
         return action_desc_num
 
-    def step(self, visible_state, inventory_state, objs, prev_action=None, cache=None, gat=True):
-        ret, ret_cache = self.update_state(visible_state, inventory_state, objs, prev_action, cache)
+    def step(self, visible_state, inventory_state, objs, prev_action=None, cache=None, gat=True, cs_graph = None):
+        
+        ret, ret_cache = self.update_state(visible_state, inventory_state, objs, prev_action, cache, cs_graph)
 
         self.pruned_actions_rep = [self.get_action_rep_drqa(a) for a in self.vis_pruned_actions]
 
@@ -223,8 +244,10 @@ class StateAction(object):
         self.drqa_input = self.get_visible_state_rep_drqa(inter)
 
         self.graph_state_rep = self.get_state_rep_kge(), self.adj_matrix
+        # print(self.graph_state_rep)
 
         return ret, ret_cache
+    
 
 
 def pad_sequences(sequences, maxlen=None, dtype='int32', value=0.):

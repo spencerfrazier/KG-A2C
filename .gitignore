@@ -133,3 +133,12 @@ dmypy.json
 # Roms
 roms/
 
+# Comet
+
+kga2c/comet/model/
+kga2c/comet/models/
+kga2c/comet/data/
+kga2c/comet/logs/
+kga2c/comet/results/
+kga2c/comet/*.txt
+kga2c/wandb/
