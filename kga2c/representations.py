@@ -4,6 +4,7 @@ import openie
 from fuzzywuzzy import fuzz
 from jericho.util import clean
 
+import matplotlib.pyplot as plt
 
 
 class StateAction(object):
@@ -27,9 +28,13 @@ class StateAction(object):
         # import matplotlib.pyplot as plt
         pos = nx.spring_layout(self.graph_state)
         edge_labels = {e: self.graph_state.edges[e]['rel'] for e in self.graph_state.edges}
-        print(edge_labels)
-        nx.draw_networkx_edge_labels(self.graph_state, pos, edge_labels)
-        nx.draw(self.graph_state, pos=pos, with_labels=True, node_size=200, font_size=10)
+        # print(edge_labels)
+        f = plt.figure()
+        nx.draw_networkx_edge_labels(self.graph_state, pos = pos,edge_labels= edge_labels, font_size=5)
+        nx.draw(self.graph_state, pos=pos, with_labels=True, node_size=400, font_size=5, ax=f.add_subplot(111))
+        
+        f.savefig("graph2.png")
+
         #plt.show()
 
     def load_vocab_kge(self, tsv_file):
@@ -53,7 +58,6 @@ class StateAction(object):
         prev_room = self.room
         if(cs_graph != None):
             # for key in cs_graph:
-            #     print("JERE")
             #     for edge in cs_graph["key"]:
             #         edge = edge[self.relation]
             #         subject = edge["e1"]
@@ -63,11 +67,11 @@ class StateAction(object):
             #         for pred in (predicate):
             #             self.graph_state.add_edge(subject, pred, rel=relation)
             self.graph_state = nx.compose(cs_graph, self.graph_state)
-            # print("GRAPHHHH")
             # print(self.graph_state.edges)
-        
+
 
         # print(self.graph_state.edges)
+
         graph_copy = self.graph_state.copy()
         con_cs = [graph_copy.subgraph(c) for c in nx.weakly_connected_components(graph_copy)]
         prev_room_subgraph = None
@@ -106,7 +110,6 @@ class StateAction(object):
 
         in_rl = []
         in_flag = False
-
         for i, ov in enumerate(sents):
             sent = ' '.join([a['word'] for a in ov['tokens']])
             triple = ov['openie']
@@ -167,8 +170,12 @@ class StateAction(object):
                 if u != 'it' and v != 'it':
                     # print(rule[0],"space", rule[2],"space",  rule[1])
                     self.graph_state.add_edge(rule[0], rule[2], rel=rule[1])
-        
+                     
+        # print((self.graph_state.edges))
+        # if(cs_graph != None):
+        # self.visualize()
 
+        # print("---------------")
         return add_rules, sents
 
     def get_state_rep_kge(self):

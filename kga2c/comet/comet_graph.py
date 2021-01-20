@@ -47,7 +47,7 @@ class CometHelper():
             edge = edge[self.relation]
             subject = edge["e1"]
             # relation = edge["relation"]
-            relation = "used for"
+            relation = "has a"
             predicate = edge["beams"]
             for pred in (predicate):
                 graph_state.add_edge(subject, pred, rel=relation)

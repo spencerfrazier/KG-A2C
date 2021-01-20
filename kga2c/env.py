@@ -130,17 +130,6 @@ class KGA2CEnv:
         self.episode_steps += 1
         obs, reward, done, info = self.env.step(action)
         
-        # if(reward == 0):
-        #     if(obs.find('Bathroom') != -1):
-        #         reward = 1
-        #     if(obs.find('Living room') != -1):
-        #         reward = 2
-        #     if(obs.find('Driveway') != -1):
-        #         reward = 3
-        #     if(obs.find('Driving') != -1):
-        #         reward = 4
-        # else:
-        #     reward = 5
 
         info['valid'] = self.env.world_changed() or done
         info['steps'] = self.episode_steps

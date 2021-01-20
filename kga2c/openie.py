@@ -4,7 +4,7 @@ import logging
 
 
 def call_stanford_openie(sentence):
-    url = "http://localhost:9000/"
+    url = "http://localhost:8002/"
     querystring = {
         "properties": "%7B%22annotators%22%3A%20%22openie%22%7D",
         "pipelineLanguage": "en"}
@@ -19,7 +19,7 @@ def call_stanford_openie(sentence):
 
 
 def call_stanford_pos(sentence):
-    url = "http://localhost:9000/"
+    url = "http://localhost:8002/"
     querystring = {
         "properties": "%7B%22annotators%22%3A%20%22openie%22%7D",
         "pipelineLanguage": "en"}

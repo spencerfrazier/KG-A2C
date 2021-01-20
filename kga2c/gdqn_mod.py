@@ -25,8 +25,8 @@ from vec_env import *
 import logger
 from comet.comet_graph import CometHelper
 
-# import wandb
-# wandb.init(project="kg-a2c")
+import wandb
+wandb.init(project="kg-a2c")
 
 import progressbar
 
@@ -36,8 +36,8 @@ device = torch.device("cuda")
 
 def configure_logger(log_dir):
     logger.configure(log_dir, format_strs=['log'])
-    # global tb
-    # tb = logger.Logger(log_dir, [logger.make_output_format('tensorboard', log_dir),
+    # global # tb
+    # # tb = logger.Logger(log_dir, [logger.make_output_format('tensorboard', log_dir),
     #                              logger.make_output_format('csv', log_dir),
     #                              logger.make_output_format('stdout', log_dir)])
     global log
@@ -61,7 +61,8 @@ class KGA2CTrainer(object):
         self.sp.Load(params['spm_file'])
         self.use_cs = self.params['use_cs']
         if(self.use_cs == True):
-             self.kg_extract = CometHelper(args)
+            print("Using COMET")
+            self.kg_extract = CometHelper(args)
         kg_env = KGA2CEnv(params['rom_file_path'], params['seed'], self.sp,
                           params['tsv_file'], step_limit=params['reset_steps'],
                           stuck_steps=params['stuck_steps'], gat=params['gat'])
@@ -72,12 +73,15 @@ class KGA2CTrainer(object):
         env = FrotzEnv(params['rom_file_path'])
         self.vocab_act, self.vocab_act_rev = load_vocab(env)
         torch.cuda.set_device(int(self.params['device_a2c']))
+        # self.model = KGA2C(params, self.template_generator.templates, self.max_word_length,
+        #                    self.vocab_act, self.vocab_act_rev, len(self.sp), a2c_device=(int(self.params['device_a2c'])),
+        #                    bert_device =int(self.params['device_bert']), 
+        #                    gat=self.params['gat'])
         self.model = KGA2C(params, self.template_generator.templates, self.max_word_length,
                            self.vocab_act, self.vocab_act_rev, len(self.sp), a2c_device=(int(self.params['device_a2c'])),
-                           bert_device =int(self.params['device_bert']), 
                            gat=self.params['gat'])
                            
-        print(torch.cuda.current_device())
+        # print(torch.cuda.current_device())
         self.batch_size = params['batch_size']
         if params['preload_weights']:
             self.model = torch.load(self.params['preload_weights'])['model']
@@ -173,24 +177,27 @@ class KGA2CTrainer(object):
         obs_memory = ""
         act_mem = ""
         cs_graph = None
+        # chosen_actions = ["Bedroom (in bed)"] * self.batch_size
         complete = np.zeros(self.params['batch_size']).astype(int)
-        for step in progressbar.progressbar(range(1, max_steps + 1)):
-            tb.logkv('Step', step)
-            print(self.use_cs)
-
-            # wandb.log({'Step': step})
+        for step in progressbar.progressbar(range(1, max_steps + 1), redirect_stdout=True):
+            # tb.logkv('Step', step)
+            wandb.log({'Step': step}, step = step)
 
             descs = [g.description for g in graph_infos] # get desc #SJF
-
+            # if(chosen_actions == None):
+            #     chosen_actions = [g.description for g in graph_infos]
             obs_reps = np.array([g.ob_rep for g in graph_infos])
             graph_mask_tt = self.generate_graph_mask(graph_infos)
             graph_state_reps = [g.graph_state_rep for g in graph_infos]
             scores = [info['score'] for info in infos]
-            tmpl_pred_tt, obj_pred_tt, dec_obj_tt, dec_tmpl_tt, value, dec_steps = self.model(
-                obs_reps, scores, graph_state_reps, graph_mask_tt, descs)
 
-            # wandb.log({'Value': value.mean().item()})
-            tb.logkv_mean('Value', value.mean().item())
+            # tmpl_pred_tt, obj_pred_tt, dec_obj_tt, dec_tmpl_tt, value, dec_steps = self.model(
+            #     obs_reps, scores, graph_state_reps, graph_mask_tt, descs)
+            tmpl_pred_tt, obj_pred_tt, dec_obj_tt, dec_tmpl_tt, value, dec_steps = self.model(
+                obs_reps, scores, graph_state_reps, graph_mask_tt)
+
+            wandb.log({'Value': value.mean().item()},step = step)
+            # tb.logkv_mean('Value', value.mean().item())
 
             # Log the predictions and ground truth values
             topk_tmpl_probs, topk_tmpl_idxs = F.softmax(tmpl_pred_tt[0]).topk(5)
@@ -218,24 +225,51 @@ class KGA2CTrainer(object):
             ## GENERATING THE COMMONSENSE KNOWLEDGE GRAPH BASED ON OBSERVED TRIPLES
             obs, rewards, dones, infos = self.vec_env.step(chosen_actions)
             obs = list(obs)
-            for ind, ob in enumerate(obs):
-                
-                # if(ob.find('Bedroom') != -1):
-                #     obs[ind] = ob.replace("Cleaner clothing can be found in the", "There is a")
-                if(ob.find('Bathroom') != -1):
-                    # ob = ob.replace(", with a sink, toilet and shower", "")
-                    complete[ind] = 1
-                if(ob.find('Living room') != -1 and complete[ind] == 1):
-                    complete[ind] = 2
-                if(ob.find('Driveway') != -1 and complete[ind] == 2):
-                    complete[ind] = 3
-                if(ob.find('Driving') != -1 and complete[ind] == 3):
-                    complete[ind] = 4
-            obs = tuple(obs)
-            # print(obs)
-            # print(complete)
-            if(self.use_cs == True):
 
+            ### Making entire walkthrough
+            for ind, ob in enumerate(obs):
+
+                # Deleting observations
+                # if(ob.find('Bathroom') != -1 ):
+                    # obs[ind] = ob.replace(", with a sink, toilet and shower", "")
+
+                if(ob.find('Bedroom') != -1):
+                    # obs[ind] = ob.replace("Cleaner clothing can be found in the", "There is a")
+                    complete[ind] = 1
+                if(ob.find('Bathroom') != -1 and complete[ind] == 1):
+                    complete[ind] = 2
+                if(ob.find('You take off the gold watch.') != -1 and complete[ind] == 2):
+                    # ob = ob.replace(", with a sink, toilet and shower", "")
+                    complete[ind] = 3
+                if(ob.find('You take off the soiled clothing') != -1 and complete[ind] == 3):
+                    complete[ind] = 4
+                if((ob.find('Dropped') != -1 or ob.find('Removed') != -1) and ob.find('soiled clothing') != -1 and complete[ind] == 4):
+                    complete[ind] = 5
+                if(ob.find('You step into the shower, turn on the water, and within a few moments you feel like a new man.') != -1):
+                    complete[ind] = 6
+                if(ob.find('You put on the gold watch.') != -1 and complete[ind] == 6):
+                    complete[ind] = 7
+                # if(((ob.find('keys:Taken') != -1 or ob.find('keys:Removed') != -1) and (ob.find('wallet:Taken') != -1 or ob.find('wallet:Removed') != -1)) and complete[ind] == 7):
+                #     complete[ind] = 8
+                # if(ob.find('You open the dresser, revealing some clean clothing.') != -1 and complete[ind] == 8):
+                #     complete[ind] = 9
+                # if(ob.find('You put on the clean clothing.') != -1 and complete[ind] >= 8 and complete[ind] <= 9):
+                #     complete[ind] = 10
+                # if(ob.find('Living room') != -1 and complete[ind] == 10):
+                #     complete[ind] = 11
+                # if(ob.find('You open the front door.') != -1 and complete[ind] == 11):
+                #     complete[ind] = 12
+                # if(ob.find('Driveway') != -1 and complete[ind] == 12):
+                #     complete[ind] = 13
+                # if(ob.find('You climb inside and start up the engine.') != -1 and complete[ind] == 13):
+                #     complete[ind] = 14
+                # if(ob.find('Driving.') != -1 and complete[ind] == 14):
+                #     complete[ind] = 15
+                # obs[ind] = "This is a far from luxurious but still quite functional bathroom. The bedroom lies to the north."
+            obs = tuple(obs)
+
+            if(self.use_cs == True):
+                
                 cs_graph = [None]*len(obs)
                 for idx,ob in enumerate(obs):
                     pos_tags  = (nltk.pos_tag(nltk.word_tokenize(str(obs[idx]))))
@@ -244,7 +278,7 @@ class KGA2CTrainer(object):
                         if(tag[1] == 'NN' or tag[1] == 'NNS'):
                             comet_input.append(tag[0])
                     nouns = [] 
-
+                    
                     [nouns.append(x) for x in comet_input if x not in nouns]  
                     cs_graph[idx] = self.kg_extract.make_graph(nouns)
 
@@ -256,31 +290,43 @@ class KGA2CTrainer(object):
 
                 graph_infos = self.vec_env.step(chosen_actions, obs = obs, done = dones, make_graph=1, use_cs = False, cs_graph = cs_graph)
             
-            tb.logkv_mean('TotalStepsPerEpisode', sum([i['steps'] for i in infos]) / float(len(graph_infos)))
-            # wandb.log({'TotalStepsPerEpisode': sum([i['steps'] for i in infos]) / float(len(graph_infos))})
-            tb.logkv_mean('Valid', infos[0]['valid'])
-            # wandb.log({'Valid': infos[0]['valid']})
+
+
+            # tb.logkv_mean('TotalStepsPerEpisode', sum([i['steps'] for i in infos]) / float(len(graph_infos)))
+            wandb.log({'TotalStepsPerEpisode': sum([i['steps'] for i in infos]) / float(len(graph_infos))}, step = step)
+            # tb.logkv_mean('Valid', infos[0]['valid'])
+            wandb.log({'Valid': infos[0]['valid']},step = step)
             log('Act: {}, Rew {}, Score {}, Done {}, Value {:.3f}'.format(
                 chosen_actions[0], rewards[0], infos[0]['score'], dones[0], value[0].item()))
             log('Obs: {}'.format(clean(obs[0])))
             if dones[0]:
                 log('Step {} EpisodeScore {}\n'.format(step, infos[0]['score']))
+            complete_mean = 0
+            run_cmp = 0
+            score_comp = 0
             for ind, (done, info) in enumerate(zip(dones, infos)):
                 if done:
-                    # tb.logkv_mean('EpisodeScore', info['score'])
-                    # print(rewards)
-                    # print(complete)
-                    if(complete[ind] == 5):
-                        # wandb.log({'EpisodeScore': 1})
-                        tb.logkv('EpisodeScore', 1)
-                    else:
-                        # wandb.log({'EpisodeScore': 0})
-                        tb.logkv('EpisodeScore', 0)
-                    # wandb.log({'EpisodeReward': complete[ind]})
-                    tb.logkv('EpisodeReward', complete[ind])
+                    # # tb.logkv_mean('EpisodeScore', info['score'])
 
-                    # wandb.log({'EpisodeReward': rewards[ind]})
+                    if(complete[ind] == 15):
+                        score_comp = 1
+                        # tb.logkv('EpisodeScore', 1)
+
+                    complete_mean += complete[ind]
+                    # tb.logkv('EpisodeReward', complete[ind])
                     complete[ind] = 0
+                    run_cmp += 1
+            if(run_cmp != 0):
+                wandb.log({'EpisodeReward': float(complete_mean)/run_cmp}, step = step)
+            # else: 
+            #     wandb.log({'EpisodeReward': 0}, step = step)
+            
+            if(score_comp == 1):
+                wandb.log({'EpisodeScore': 1}, step = step)
+            # else:
+            #     wandb.log({'EpisodeScore': 0}, step = step)
+
+            ## Replacing rewards with complete variable
             rew_tt = torch.FloatTensor(tuple(complete)).cuda().unsqueeze(1)
             # rew_tt = torch.FloatTensor(rewards).cuda().unsqueeze(1)
             done_mask_tt = (~torch.tensor(dones)).float().cuda().unsqueeze(1)
@@ -290,22 +336,23 @@ class KGA2CTrainer(object):
                                 dec_obj_tt, obj_mask_gt_tt, graph_mask_tt, dec_steps))
 
             if len(transitions) >= self.params['bptt']:
-                tb.logkv('StepsPerSecond', float(step) / (time.time() - start))
-                # wandb.log({'StepsPerSecond': float(step) / (time.time() - start)})
+                # tb.logkv('StepsPerSecond', float(step) / (time.time() - start))
+                wandb.log({'StepsPerSecond': float(step) / (time.time() - start)}, step = step)
                 self.model.clone_hidden()
                 obs_reps = np.array([g.ob_rep for g in graph_infos])
                 graph_mask_tt = self.generate_graph_mask(graph_infos)
                 graph_state_reps = [g.graph_state_rep for g in graph_infos]
-                # scores = [info['score'] for info in infos]
-                scores = (complete)
+                scores = [info['score'] for info in infos]
                 descs = [g.description for g in graph_infos] # get desc #SJF
-                _, _, _, _, next_value, _ = self.model(obs_reps, scores, graph_state_reps, graph_mask_tt, descs)
+                # _, _, _, _, next_value, _ = self.model(obs_reps, scores, graph_state_reps, graph_mask_tt, descs)
+                _, _, _, _, next_value, _ = self.model(obs_reps, scores, graph_state_reps, graph_mask_tt)
+
                 returns, advantages = self.discount_reward(transitions, next_value)
                 log('Returns: ', ', '.join(['{:.3f}'.format(a[0].item()) for a in returns]))
                 log('Advants: ', ', '.join(['{:.3f}'.format(a[0].item()) for a in advantages]))
-                tb.logkv_mean('Advantage', advantages[-1].median().item())
-                # wandb.log({'Advantage': advantages[-1].median().item()})
-                loss = self.update(transitions, returns, advantages)
+                # tb.logkv_mean('Advantage', advantages[-1].median().item())
+                wandb.log({'Advantage': advantages[-1].median().item()}, step = step)
+                loss = self.update(transitions, returns, advantages, step)
                 del transitions[:]
                 self.model.restore_hidden()
 
@@ -316,7 +363,7 @@ class KGA2CTrainer(object):
         self.vec_env.close_extras()
 
 
-    def update(self, transitions, returns, advantages):
+    def update(self, transitions, returns, advantages, step):
         assert len(transitions) == len(returns) == len(advantages)
         loss = 0
         for trans, ret, adv in zip(transitions, returns, advantages):
@@ -358,8 +405,7 @@ class KGA2CTrainer(object):
                     policy_obj_loss += -log_prob_obj * adv[i].detach()
             if cnt > 0:
                 policy_obj_loss /= cnt
-            tb.logkv_mean('PolicyObjLoss', policy_obj_loss.item())
-            # wandb.log({'PolicyObjLoss': policy_obj_loss.item()})
+            # tb.logkv_mean('PolicyObjLoss', policy_obj_loss.item())
 
             log_probs_obj = F.log_softmax(obj_pred_tt, dim=2)
 
@@ -367,38 +413,35 @@ class KGA2CTrainer(object):
             action_log_probs_tmpl = log_probs_tmpl.gather(1, dec_tmpl_tt).squeeze()
 
             policy_tmpl_loss = (-action_log_probs_tmpl * adv.detach().squeeze()).mean()
-            tb.logkv_mean('PolicyTemplateLoss', policy_tmpl_loss.item())
-            # wandb.log({'PolicyTemplateLoss': policy_tmpl_loss.item()})
+            # tb.logkv_mean('PolicyTemplateLoss', policy_tmpl_loss.item())
 
             policy_loss = policy_tmpl_loss + policy_obj_loss
 
             value_loss = self.params['value_coeff'] * self.loss_fn3(value, ret)
             tmpl_entropy = -(tmpl_probs * log_probs_tmpl).mean()
-            tb.logkv_mean('TemplateEntropy', tmpl_entropy.item())
-            # wandb.log({'TemplateEntropy': tmpl_entropy.item()})
+            # tb.logkv_mean('TemplateEntropy', tmpl_entropy.item())
 
             object_entropy = -(obj_probs * log_probs_obj).mean()
-            tb.logkv_mean('ObjectEntropy', object_entropy.item())
-            # wandb.log({'ObjectEntropy': object_entropy.item()})
+            # tb.logkv_mean('ObjectEntropy', object_entropy.item())
 
             # Minimizing entropy loss will lead to increased entropy
             entropy_loss = self.params['entropy_coeff'] * -(tmpl_entropy + object_entropy)
 
             loss += template_loss + object_mask_loss + value_loss + entropy_loss + policy_loss
 
-        tb.logkv('Loss', loss.item())
-        tb.logkv('TemplateLoss', template_loss.item())
-        tb.logkv('ObjectLoss', object_mask_loss.item())
-        tb.logkv('PolicyLoss', policy_loss.item())
-        tb.logkv('ValueLoss', value_loss.item())
-        tb.logkv('EntropyLoss', entropy_loss.item())
-        tb.dumpkvs()
-        # wandb.log({'Loss': loss.item()})
-        # wandb.log({'TemplateLoss': template_loss.item()})
-        # wandb.log({'ObjectLoss': object_mask_loss.item()})
-        # wandb.log({'PolicyLoss': policy_loss.item()})
-        # wandb.log({'ValueLoss': value_loss.item()})
-        # wandb.log({'EntropyLoss': entropy_loss.item()})
+        # tb.logkv('Loss', loss.item())
+        # tb.logkv('TemplateLoss', template_loss.item())
+        # tb.logkv('ObjectLoss', object_mask_loss.item())
+        # tb.logkv('PolicyLoss', policy_loss.item())
+        # tb.logkv('ValueLoss', value_loss.item())
+        # tb.logkv('EntropyLoss', entropy_loss.item())
+        # tb.dumpkvs()
+        wandb.log({'Loss': loss.item()}, step = step)
+        wandb.log({'TemplateLoss': template_loss.item()}, step = step)
+        wandb.log({'ObjectLoss': object_mask_loss.item()}, step = step)
+        wandb.log({'PolicyLoss': policy_loss.item()}, step = step)
+        wandb.log({'ValueLoss': value_loss.item()}, step = step)
+        wandb.log({'EntropyLoss': entropy_loss.item()}, step = step)
 
 
         # log ('Loss', loss.item())
@@ -414,16 +457,16 @@ class KGA2CTrainer(object):
         for p in list(filter(lambda p: p.grad is not None, self.model.parameters())):
             grad_norm += p.grad.data.norm(2).item()
             
-        tb.logkv('UnclippedGradNorm', grad_norm)
-        # wandb.log({'UnclippedGradNorm': grad_norm})
+        # tb.logkv('UnclippedGradNorm', grad_norm)
+        wandb.log({'UnclippedGradNorm': grad_norm}, step = step)
         nn.utils.clip_grad_norm_(self.model.parameters(), self.params['clip'])
 
         # Clipped Grad norm
         grad_norm = 0
         for p in list(filter(lambda p: p.grad is not None, self.model.parameters())):
             grad_norm += p.grad.data.norm(2).item()
-        tb.logkv('ClippedGradNorm', grad_norm)
-        # wandb.log({'ClippedGradNorm': grad_norm})
+        # tb.logkv('ClippedGradNorm', grad_norm)
+        wandb.log({'ClippedGradNorm': grad_norm}, step = step)
 
         self.optimizer.step()
         self.optimizer.zero_grad()

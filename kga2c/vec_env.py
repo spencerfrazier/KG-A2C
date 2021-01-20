@@ -15,7 +15,7 @@ def start_openie(install_path):
     print('Starting OpenIE from', install_path)
     subprocess.Popen(['java', '-mx8g', '-cp', '*', \
                       'edu.stanford.nlp.pipeline.StanfordCoreNLPServer', \
-                      '-port', '9000', '-timeout', '15000', '-quiet'], cwd=install_path)
+                      '-port', '8002', '-timeout', '15000', '-quiet'], cwd=install_path)
     time.sleep(1)
 
 
@@ -38,7 +38,6 @@ def worker(remote, parent_remote, env):
                     ob, rew, done, info = env.step(data)
                     # ob, rew, done, info,graph_infos = env.step(data)
                     remote.send((ob, rew, done, info))
-                    # remote.put((ob, rew, done, info))
 
             elif cmd == 'graph':
                 if done:
@@ -49,7 +48,6 @@ def worker(remote, parent_remote, env):
             elif cmd == 'reset':
                 ob, info, graph_info = env.reset()
                 remote.send((ob, info, graph_info))
-                # remote.put((ob, info, graph_info))
             elif cmd == 'close':
                 env.close()
                 break
@@ -70,24 +68,16 @@ class VecEnv:
         self.closed = False
         self.total_steps = 0
         self.num_envs = num_envs
-        # mp.set_start_method('spawn')
-
-        # self.remotes, self.work_remotes = zip(*[mp.Pipe() for _ in range(num_envs)])
         self.remotes, self.work_remotes = zip(*[mp.Pipe() for _ in range(num_envs)])
         self.ps = [mp.Process(target=worker, args=(work_remote, remote, env))
                    for (work_remote, remote) in zip(self.work_remotes, self.remotes)]
         
-        # self.remotes = zip(*[mp.Queue() for _ in range(num_envs)])
-        # self.ps = [mp.Process(target=worker, args=(remote, env))
-        #            for (work_remote, remote) in zip(self.work_remotes, self.remotes)]
-
         for p in self.ps:
             p.daemon = True  # if the main process crashes, we should not cause things to hang
             p.start()
         for remote in self.work_remotes:
             remote.close()
-        # for remote in self.remotes:
-        #     remote.close()
+
         
 
     def step(self, actions, obs = None, done = None, make_graph = 0, cs_graph = None, use_cs = False):

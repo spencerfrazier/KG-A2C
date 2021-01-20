@@ -1,0 +1,430 @@
+Logging to ./logs/
+Parameters {'output_dir': './logs/', 'spm_file': './spm_models/unigram_8k.model', 'tsv_file': '../data/905_entity2id.tsv', 'rom_file_path': '../roms/905.z5', 'openie_path': '../../stanford-corenlp-4.1.0/', 'batch_size': 16, 'lr': 0.003, 'gamma': 0.5, 'embedding_size': 50, 'hidden_size': 100, 'padding_idx': 0, 'gat_emb_size': 50, 'dropout_ratio': 0.2, 'preload_weights': '', 'bindings': 'zork1', 'seed': 0, 'steps': 10000, 'reset_steps': 100, 'stuck_steps': 10, 'trial': 'base', 'loss': 'value_policy_entropy', 'graph_dropout': 0.0, 'k_object': 1, 'g_val': False, 'entropy_coeff': 0.03, 'clip': 40, 'bptt': 8, 'value_coeff': 9, 'template_coeff': 3, 'object_coeff': 9, 'recurrent': True, 'checkpoint_interval': 500, 'gat': True, 'masking': 'kg', 'device_a2c': '0', 'use_bert': True, 'device_bert': '1', 'use_cs': True, 'device_comet': '2', 'model_file': 'comet/models/1e-05_adam_64_15500.pickle', 'relation': 'HasA', 'sampling_algorithm': 'beam-5'}
+TmplPred: get off OBJ 0.015, turn off OBJ 0.015, open OBJ with OBJ 0.015, northwest 0.014, up 0.014 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: cubicle 0.004, murder 0.004, sign 0.004, read 0.004, restroom 0.004 GT: all, bed, clothing, door, end, keys, phone, wallet, watch
+Act: turn off bedroom, Rew 0, Score 0, Done False, Value 0.057
+Obs: [!: Please be more specific.]  The phone rings.
+TmplPred: get off OBJ 0.015, inventory wide 0.014, northwest 0.014, turn off OBJ 0.014, eat OBJ 0.014 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: murder 0.004, sign 0.004, cubicle 0.004, read 0.004, restroom 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: look under bedroom, Rew 0, Score 0, Done False, Value 0.050
+Obs: [!: Please be more specific.]  The phone rings.
+TmplPred: get off OBJ 0.015, northwest 0.014, turn off OBJ 0.014, look under OBJ 0.014, inventory wide 0.014 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: cubicle 0.004, murder 0.004, sign 0.004, read 0.004, restroom 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: inventory wide, Rew 0, Score 0, Done False, Value 0.054
+Obs: You are carrying some soiled clothing (being worn) and a gold watch (being worn).  The phone rings.
+TmplPred: get off OBJ 0.015, open OBJ with OBJ 0.014, northwest 0.014, look under OBJ 0.014, turn off OBJ 0.014 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: murder 0.004, cubicle 0.004, sign 0.004, restroom 0.004, read 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: turn off watch, Rew 0, Score 0, Done False, Value 0.055
+Obs: That's not something you can switch.  The phone rings.
+TmplPred: get off OBJ 0.015, eat OBJ 0.015, inventory wide 0.014, open OBJ with OBJ 0.014, northwest 0.014 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: cubicle 0.004, murder 0.004, read 0.004, sign 0.004, restroom 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: southwest, Rew 0, Score 0, Done False, Value 0.057
+Obs: You'll have to get out of bed first.  The phone rings.
+TmplPred: eat OBJ 0.015, get off OBJ 0.015, up 0.014, turn off OBJ 0.014, open OBJ with OBJ 0.014 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: murder 0.004, cubicle 0.004, read 0.004, sign 0.004, restroom 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: examine watch, Rew 0, Score 0, Done False, Value 0.059
+Obs: Apparently it's 9:10.  The phone rings.
+TmplPred: eat OBJ 0.015, get off OBJ 0.014, inventory wide 0.014, open OBJ with OBJ 0.014, up 0.014 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: murder 0.004, cubicle 0.004, sign 0.004, read 0.004, restroom 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: sign gold with long, Rew 0, Score 0, Done False, Value 0.060
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+TmplPred: up 0.015, turn off OBJ 0.014, open OBJ with OBJ 0.014, go in OBJ 0.014, inventory wide 0.014 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: murder 0.004, read 0.004, sign 0.004, cubicle 0.004, take 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: down, Rew 0, Score 0, Done False, Value 0.063
+Obs: You'll have to get out of bed first.  The phone rings.
+Returns:  0.000, 0.000, 0.001, 0.001, 0.003, 0.006, 0.012, 0.024
+Advants:  -0.057, -0.050, -0.053, -0.053, -0.054, -0.053, -0.048, -0.039
+TmplPred: look under OBJ 0.016, leave in OBJ 0.016, exit 0.015, take off OBJ 0.015, eat OBJ 0.015 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.004, bathroom 0.004, in 0.004, bed 0.004, short 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: turn off six, Rew 0, Score 0, Done False, Value 0.314
+Obs: [!: That verb cannot take multiple objects.]
+TmplPred: look under OBJ 0.017, open OBJ with OBJ 0.015, exit 0.015, take off OBJ 0.015, leave in OBJ 0.015 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.004, in 0.004, bathroom 0.004, short 0.004, bed 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: unlock bedroom, Rew 0, Score 0, Done False, Value 0.298
+Obs: [!: Please be more specific.]  The phone rings.
+TmplPred: look under OBJ 0.017, leave in OBJ 0.015, take off OBJ 0.015, exit 0.015, put OBJ on OBJ 0.015 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, in 0.004, bathroom 0.004, short 0.004, bed 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: get off lot, Rew 0, Score 0, Done True, Value 0.318
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+Step 11 EpisodeScore 0
+
+TmplPred: look under OBJ 0.017, leave in OBJ 0.015, take off OBJ 0.015, exit 0.015, put OBJ on OBJ 0.015 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.004, in 0.004, bed 0.004, short 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: inventory tall, Rew 0, Score 0, Done False, Value 0.320
+Obs: The phone rings.  Oh, no   how long have you been asleep? Sure, it was a tough night, but... This is bad. This is very bad.  The phone rings.          9:05 by Adam Cadre v1.11 (2012.0724) / Original release 2000.0103          Bedroom (in bed) This bedroom is extremely spare, with dirty laundry scattered haphazardly all over the floor. Cleaner clothing can be found in the dresser. A bathroom lies to the south, while a door to the east leads to the living room.  On the end table are a telephone, a wallet and some keys.  The phone rings.
+TmplPred: look under OBJ 0.017, take off OBJ 0.015, leave in OBJ 0.015, open OBJ with OBJ 0.015, put OBJ on OBJ 0.015 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.004, bathroom 0.004, in 0.004, bed 0.004, short 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: take off to, Rew 0, Score 0, Done False, Value 0.300
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+TmplPred: look under OBJ 0.016, exit 0.015, put OBJ on OBJ 0.015, take off OBJ 0.015, open OBJ with OBJ 0.015 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, in 0.004, bathroom 0.004, short 0.004, read 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: drive to, Rew 0, Score 0, Done False, Value 0.303
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+TmplPred: look under OBJ 0.016, exit 0.016, put OBJ on OBJ 0.015, eat OBJ 0.015, open OBJ with OBJ 0.015 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, in 0.004, bathroom 0.004, short 0.004, read 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: get in table, Rew 0, Score 0, Done False, Value 0.294
+Obs: That's not something you can enter.  The phone rings.
+TmplPred: look under OBJ 0.017, exit 0.015, leave in OBJ 0.015, open OBJ with OBJ 0.015, put OBJ on OBJ 0.015 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, in 0.004, bathroom 0.004, bed 0.004, short 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: down, Rew 0, Score 0, Done False, Value 0.297
+Obs: You'll have to get out of bed first.  The phone rings.
+Returns:  0.000, 0.000, 0.000, 1.947, 1.894, 1.788, 1.577, 1.153
+Advants:  -0.314, -0.298, -0.318, 1.627, 1.594, 1.486, 1.283, 0.856
+TmplPred: look under OBJ 0.021, take off OBJ 0.021, exit 0.018, put OBJ on OBJ 0.017, eat OBJ 0.017 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.005, in 0.005, bed 0.005, door 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: answer one, Rew 0, Score 0, Done False, Value 0.889
+Obs: (bed) That isn't something you can answer.  The phone rings.
+TmplPred: look under OBJ 0.021, take off OBJ 0.020, exit 0.018, put OBJ on OBJ 0.017, up 0.017 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.005, in 0.005, bed 0.005, door 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: look under one, Rew 0, Score 0, Done False, Value 0.931
+Obs: (bed) Under the bed you see the corpse of the guy who owns this house.  The phone rings.
+TmplPred: look under OBJ 0.021, take off OBJ 0.021, exit 0.018, put OBJ on OBJ 0.017, up 0.017 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.005, in 0.005, bed 0.005, door 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: put on lock, Rew 0, Score 0, Done False, Value 0.936
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+TmplPred: take off OBJ 0.021, look under OBJ 0.021, exit 0.018, eat OBJ 0.017, up 0.017 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.005, in 0.005, bed 0.004, door 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: put and on north, Rew 0, Score 0, Done False, Value 0.889
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.021, take off OBJ 0.020, exit 0.018, put OBJ on OBJ 0.017, east 0.017 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.005, in 0.005, bed 0.005, door 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: southeast, Rew 0, Score 0, Done False, Value 0.911
+Obs: You'll have to get out of bed first.  The phone rings.
+TmplPred: look under OBJ 0.022, take off OBJ 0.020, exit 0.018, put OBJ on OBJ 0.017, up 0.017 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.005, in 0.005, bed 0.005, keys 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: stand on dresser, Rew 0, Score 0, Done False, Value 0.890
+Obs: You'll have to get out of bed first.  The phone rings.
+TmplPred: look under OBJ 0.021, take off OBJ 0.021, exit 0.018, up 0.017, eat OBJ 0.017 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.005, in 0.005, bed 0.005, keys 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: northeast, Rew 0, Score 0, Done False, Value 0.895
+Obs: You'll have to get out of bed first.  The phone rings.
+TmplPred: look under OBJ 0.022, take off OBJ 0.022, exit 0.018, up 0.017, eat OBJ 0.017 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.005, bathroom 0.005, in 0.005, bed 0.005, keys 0.004 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: up, Rew 0, Score 0, Done False, Value 0.889
+Obs: You get out of bed.  Bedroom This bedroom is extremely spare, with dirty laundry scattered haphazardly all over the floor. Cleaner clothing can be found in the dresser. A bathroom lies to the south, while a door to the east leads to the living room.  On the end table are a telephone, a wallet and some keys.  The phone rings.
+Returns:  1.996, 1.992, 1.983, 1.966, 1.933, 1.865, 1.731, 1.462
+Advants:  1.107, 1.061, 1.047, 1.078, 1.022, 0.976, 0.836, 0.572
+TmplPred: look under OBJ 0.036, take off OBJ 0.034, put OBJ on OBJ 0.025, exit 0.024, open OBJ 0.023 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: lock 0.007, door 0.006, clothing 0.006, bathroom 0.006, in 0.006 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: insert north in four, Rew 0, Score 0, Done False, Value 2.173
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.034, take off OBJ 0.033, put OBJ on OBJ 0.025, exit 0.024, open OBJ 0.021 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: lock 0.007, door 0.006, clothing 0.006, bathroom 0.006, in 0.006 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: open wash, Rew 0, Score 0, Done False, Value 2.156
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.033, take off OBJ 0.033, put OBJ on OBJ 0.023, exit 0.023, east 0.022 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: lock 0.007, clothing 0.006, door 0.006, bathroom 0.006, in 0.006 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: east, Rew 0, Score 0, Done False, Value 2.093
+Obs: Living room The furniture isn't as carefully arranged as one might like, and it's a bit lacking in the luxuries that might make this a more pleasant place to spend an evening   no stereo, no TV, no DVD, none of that   but this living room is still nicer than most of those in this neighborhood. A kitchenette lies to the east, the bedroom to the west and the front door to the south.  The phone in the bedroom rings.
+TmplPred: look under OBJ 0.033, take off OBJ 0.032, put OBJ on OBJ 0.024, exit 0.023, open OBJ 0.022 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.007, bathroom 0.006, clothing 0.006, door 0.006, in 0.006 GT: all, clothing, front, gold
+Act: put card on south, Rew 0, Score 0, Done False, Value 2.016
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.033, take off OBJ 0.032, put OBJ on OBJ 0.024, exit 0.023, open OBJ 0.021 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.007, door 0.006, clothing 0.006, bathroom 0.006, in 0.006 GT: all, clothing, front, gold
+Act: open wash, Rew 0, Score 0, Done False, Value 2.091
+Obs: [!: Noun error.]
+TmplPred: take off OBJ 0.032, look under OBJ 0.032, put OBJ on OBJ 0.023, exit 0.023, east 0.022 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.007, bathroom 0.006, clothing 0.006, door 0.006, in 0.006 GT: all, clothing, front, gold
+Act: get out of on, Rew 0, Score 0, Done False, Value 2.015
+Obs: [!: Noun error.]
+TmplPred: take off OBJ 0.033, look under OBJ 0.033, put OBJ on OBJ 0.023, exit 0.022, east 0.021 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.007, door 0.006, bathroom 0.006, clothing 0.006, in 0.006 GT: all, clothing, front, gold
+Act: put south on corpse, Rew 0, Score 0, Done False, Value 2.031
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.033, take off OBJ 0.033, put OBJ on OBJ 0.023, exit 0.022, east 0.022 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.007, door 0.006, clothing 0.006, bathroom 0.006, in 0.006 GT: all, clothing, front, gold
+Act: get out of bathroom, Rew 0, Score 0, Done False, Value 2.095
+Obs: [!: Noun error.]
+Returns:  2.000, 2.000, 2.000, 2.000, 2.001, 2.001, 2.003, 2.006
+Advants:  -0.173, -0.156, -0.093, -0.016, -0.090, -0.013, -0.028, -0.089
+TmplPred: look under OBJ 0.053, take off OBJ 0.048, put OBJ on OBJ 0.032, exit 0.028, open OBJ 0.028 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.009, clothing 0.009, door 0.008, gold 0.007, table 0.007 GT: all, clothing, front, gold
+Act: put kitchen down, Rew 0, Score 0, Done False, Value 2.309
+Obs: The kitchenette is already here.  The phone in the bedroom rings.
+TmplPred: look under OBJ 0.053, take off OBJ 0.050, put OBJ on OBJ 0.031, exit 0.029, open OBJ 0.028 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.009, clothing 0.008, door 0.008, gold 0.007, table 0.007 GT: all, clothing, front, gold
+Act: sit on top of wash, Rew 0, Score 0, Done False, Value 2.277
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.053, take off OBJ 0.049, put OBJ on OBJ 0.031, open OBJ 0.029, east 0.028 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.009, clothing 0.009, door 0.008, gold 0.007, table 0.007 GT: all, clothing, front, gold
+Act: lock to, Rew 0, Score 0, Done False, Value 2.328
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.053, take off OBJ 0.046, put OBJ on OBJ 0.033, exit 0.029, open OBJ 0.029 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.009, clothing 0.008, door 0.008, gold 0.007, table 0.007 GT: all, clothing, front, gold
+Act: north, Rew 0, Score 0, Done False, Value 2.298
+Obs: That isn't a useful direction from here.  The phone in the bedroom rings.
+TmplPred: look under OBJ 0.056, take off OBJ 0.047, put OBJ on OBJ 0.034, open OBJ 0.029, exit 0.029 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.009, clothing 0.009, door 0.008, gold 0.007, table 0.007 GT: all, clothing, front, gold
+Act: look in key, Rew 0, Score 0, Done False, Value 2.342
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.055, take off OBJ 0.048, put OBJ on OBJ 0.035, open OBJ 0.030, exit 0.029 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.009, clothing 0.008, door 0.008, gold 0.007, table 0.007 GT: all, clothing, front, gold
+Act: undress, Rew 0, Score 0, Done True, Value 2.328
+Obs: [!: Please be more specific about what you'd like to take off.]  The phone in the bedroom rings.
+Step 38 EpisodeScore 0
+
+TmplPred: look under OBJ 0.053, take off OBJ 0.047, put OBJ on OBJ 0.034, open OBJ 0.030, exit 0.028 GT: take off OBJ, open OBJ, put OBJ down, west, east
+ObjtPred: lock 0.009, clothing 0.008, door 0.008, gold 0.007, table 0.007 GT: all, clothing, front, gold
+Act: exit, Rew 0, Score 0, Done False, Value 2.276
+Obs: The phone rings.  Oh, no   how long have you been asleep? Sure, it was a tough night, but... This is bad. This is very bad.  The phone rings.          9:05 by Adam Cadre v1.11 (2012.0724) / Original release 2000.0103          Bedroom (in bed) This bedroom is extremely spare, with dirty laundry scattered haphazardly all over the floor. Cleaner clothing can be found in the dresser. A bathroom lies to the south, while a door to the east leads to the living room.  On the end table are a telephone, a wallet and some keys.  The phone rings.
+TmplPred: look under OBJ 0.059, take off OBJ 0.050, put OBJ on OBJ 0.036, open OBJ 0.030, exit 0.030 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: lock 0.009, clothing 0.009, door 0.008, gold 0.008, table 0.007 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: leave in keys, Rew 0, Score 0, Done False, Value 2.411
+Obs: They're not something you can enter.  The phone rings.
+Returns:  1.938, 1.875, 1.750, 1.500, 1.000, 0.000, 2.108, 2.216
+Advants:  -0.371, -0.402, -0.578, -0.798, -1.342, -2.328, -0.168, -0.194
+TmplPred: look under OBJ 0.095, take off OBJ 0.065, put OBJ on OBJ 0.049, open OBJ 0.042, east 0.035 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: clothing 0.013, lock 0.012, door 0.010, gold 0.010, bed 0.009 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: use lock, Rew 0, Score 0, Done False, Value 2.118
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+TmplPred: look under OBJ 0.087, take off OBJ 0.064, put OBJ on OBJ 0.046, open OBJ 0.039, east 0.034 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: clothing 0.013, lock 0.012, door 0.010, gold 0.010, bed 0.009 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: look under sky, Rew 0, Score 0, Done False, Value 2.037
+Obs: You find nothing of interest.  The phone rings.
+TmplPred: look under OBJ 0.096, take off OBJ 0.068, put OBJ on OBJ 0.047, open OBJ 0.039, east 0.033 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: clothing 0.013, lock 0.012, door 0.010, gold 0.010, bed 0.010 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: take off six, Rew 0, Score 0, Done False, Value 2.093
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+TmplPred: look under OBJ 0.090, take off OBJ 0.066, put OBJ on OBJ 0.049, open OBJ 0.038, east 0.034 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: clothing 0.013, lock 0.012, door 0.010, gold 0.010, bed 0.009 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: look at keys, Rew 0, Score 0, Done False, Value 2.103
+Obs: House keys, car keys, they're all on the same chain.  The phone rings.
+TmplPred: look under OBJ 0.094, take off OBJ 0.066, put OBJ on OBJ 0.047, open OBJ 0.041, east 0.036 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: clothing 0.013, lock 0.012, door 0.010, gold 0.010, bed 0.009 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: turn of on, Rew 0, Score 0, Done False, Value 2.103
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+TmplPred: look under OBJ 0.090, take off OBJ 0.068, put OBJ on OBJ 0.045, open OBJ 0.038, east 0.034 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: clothing 0.013, lock 0.012, door 0.010, gold 0.010, bed 0.009 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: exit, Rew 0, Score 0, Done False, Value 2.096
+Obs: You get out of bed.  Bedroom This bedroom is extremely spare, with dirty laundry scattered haphazardly all over the floor. Cleaner clothing can be found in the dresser. A bathroom lies to the south, while a door to the east leads to the living room.  On the end table are a telephone, a wallet and some keys.  The phone rings.
+TmplPred: look under OBJ 0.096, take off OBJ 0.067, put OBJ on OBJ 0.047, open OBJ 0.040, east 0.035 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.013, lock 0.012, door 0.010, gold 0.010, bed 0.010 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: eat them, Rew 0, Score 0, Done False, Value 2.120
+Obs: They're not edible.  The phone rings.
+TmplPred: look under OBJ 0.101, take off OBJ 0.071, put OBJ on OBJ 0.047, open OBJ 0.041, east 0.035 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.013, lock 0.012, door 0.010, gold 0.010, bed 0.009 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: take off up, Rew 0, Score 0, Done False, Value 2.181
+Obs: You're not wearing that.  The phone rings.
+Returns:  2.001, 2.002, 2.004, 2.007, 2.014, 2.028, 2.057, 2.113
+Advants:  -0.117, -0.035, -0.089, -0.096, -0.089, -0.068, -0.064, -0.068
+TmplPred: look under OBJ 0.127, take off OBJ 0.083, put OBJ on OBJ 0.070, open OBJ 0.059, east 0.048 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.020, lock 0.015, door 0.014, gold 0.014, bed 0.013 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: put living in car, Rew 0, Score 0, Done False, Value 1.642
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.107, take off OBJ 0.080, put OBJ on OBJ 0.061, open OBJ 0.053, east 0.043 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.019, lock 0.014, door 0.014, gold 0.013, bed 0.013 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: listen, Rew 0, Score 0, Done False, Value 1.502
+Obs: You hear nothing unexpected.  The phone rings.
+TmplPred: look under OBJ 0.112, take off OBJ 0.080, put OBJ on OBJ 0.063, open OBJ 0.055, east 0.043 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.019, lock 0.014, door 0.014, gold 0.013, bed 0.013 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: put bed on sky, Rew 0, Score 0, Done False, Value 1.518
+Obs: You need to be holding bed before you can put it on top of something else.  The phone rings.
+TmplPred: look under OBJ 0.117, take off OBJ 0.084, put OBJ on OBJ 0.063, open OBJ 0.054, east 0.044 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.019, lock 0.014, door 0.014, gold 0.013, bed 0.013 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: examine three, Rew 0, Score 0, Done False, Value 1.536
+Obs: [!: That verb cannot take multiple objects.]
+TmplPred: look under OBJ 0.104, take off OBJ 0.074, put OBJ on OBJ 0.057, open OBJ 0.051, east 0.044 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.019, lock 0.014, door 0.014, gold 0.013, bed 0.013 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: open clothing, Rew 0, Score 0, Done False, Value 1.499
+Obs: That's not something you can open.  The phone rings.
+TmplPred: look under OBJ 0.118, take off OBJ 0.086, put OBJ on OBJ 0.063, open OBJ 0.053, east 0.044 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.019, lock 0.014, door 0.014, gold 0.013, bed 0.013 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: look under bed, Rew 0, Score 0, Done False, Value 1.583
+Obs: Under the bed you see the corpse of the guy who owns this house.  The phone rings.
+TmplPred: look under OBJ 0.114, take off OBJ 0.079, put OBJ on OBJ 0.064, open OBJ 0.053, east 0.043 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.019, lock 0.014, door 0.014, gold 0.013, bed 0.013 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: sign chair, Rew 0, Score 0, Done False, Value 1.509
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.112, take off OBJ 0.077, put OBJ on OBJ 0.063, open OBJ 0.051, east 0.043 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.019, lock 0.014, door 0.014, gold 0.013, bed 0.013 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: get out of of, Rew 0, Score 0, Done False, Value 1.559
+Obs: [!: Noun error.]
+Returns:  1.998, 1.997, 1.993, 1.986, 1.972, 1.944, 1.889, 1.778
+Advants:  0.356, 0.495, 0.475, 0.450, 0.473, 0.362, 0.380, 0.218
+TmplPred: look under OBJ 0.151, take off OBJ 0.104, put OBJ on OBJ 0.079, open OBJ 0.076, east 0.057 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.032, bed 0.021, door 0.020, gold 0.020, all 0.019 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: open room with no, Rew 0, Score 0, Done False, Value 1.516
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.156, take off OBJ 0.099, put OBJ on OBJ 0.080, open OBJ 0.078, east 0.059 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.032, bed 0.021, door 0.020, gold 0.020, all 0.019 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: look under clothing, Rew 0, Score 0, Done False, Value 1.510
+Obs: You find nothing of interest.  The phone rings.
+TmplPred: look under OBJ 0.169, take off OBJ 0.109, put OBJ on OBJ 0.082, open OBJ 0.077, east 0.053 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.033, bed 0.021, door 0.021, gold 0.020, all 0.020 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: take off telephone, Rew 0, Score 0, Done False, Value 1.547
+Obs: You're not wearing that.  The phone rings.
+TmplPred: look under OBJ 0.163, take off OBJ 0.105, put OBJ on OBJ 0.083, open OBJ 0.079, east 0.055 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.032, bed 0.021, door 0.021, gold 0.020, all 0.019 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: northwest, Rew 0, Score 0, Done False, Value 1.504
+Obs: That isn't a useful direction from here.  The phone rings.
+TmplPred: look under OBJ 0.163, take off OBJ 0.106, put OBJ on OBJ 0.085, open OBJ 0.080, east 0.053 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.032, bed 0.021, door 0.020, gold 0.020, all 0.019 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: put and down, Rew 0, Score 0, Done False, Value 1.486
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.147, take off OBJ 0.101, put OBJ on OBJ 0.074, open OBJ 0.074, east 0.055 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.031, bed 0.021, door 0.020, gold 0.019, all 0.019 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: look under toilet, Rew 0, Score 0, Done False, Value 1.418
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.143, take off OBJ 0.103, put OBJ on OBJ 0.076, open OBJ 0.074, east 0.053 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.032, bed 0.021, door 0.020, gold 0.019, all 0.019 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: put end on end, Rew 0, Score 0, Done False, Value 1.432
+Obs: You need to be holding the end table before you can put it on top of something else.  The phone rings.
+TmplPred: look under OBJ 0.167, take off OBJ 0.108, put OBJ on OBJ 0.084, open OBJ 0.084, east 0.057 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.033, bed 0.021, door 0.021, gold 0.020, all 0.020 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: look under lock, Rew 0, Score 0, Done False, Value 1.545
+Obs: [!: Noun error.]
+Returns:  1.998, 1.996, 1.992, 1.984, 1.969, 1.937, 1.874, 1.749
+Advants:  0.482, 0.486, 0.445, 0.480, 0.482, 0.519, 0.443, 0.204
+TmplPred: look under OBJ 0.141, open OBJ 0.128, take off OBJ 0.120, put OBJ on OBJ 0.109, east 0.075 GT: take off OBJ, take OBJ, close OBJ, get in OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ in OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.053, bed 0.036, gold 0.032, door 0.032, all 0.031 GT: all, bed, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: take off clothing, Rew 0, Score 0, Done False, Value 1.747
+Obs: You take off the soiled clothing.  The phone rings.
+TmplPred: look under OBJ 0.154, take off OBJ 0.128, open OBJ 0.128, put OBJ on OBJ 0.114, east 0.071 GT: take off OBJ, take OBJ, close OBJ, open OBJ, put OBJ down, put on OBJ, take OBJ from OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.054, bed 0.037, gold 0.033, door 0.032, all 0.031 GT: all, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: take door, Rew 0, Score 0, Done False, Value 1.806
+Obs: That's not something you can pick up.  The phone rings.
+TmplPred: look under OBJ 0.147, open OBJ 0.129, take off OBJ 0.128, put OBJ on OBJ 0.116, east 0.073 GT: take off OBJ, take OBJ, close OBJ, open OBJ, put OBJ down, put on OBJ, take OBJ from OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.054, bed 0.037, gold 0.033, door 0.032, all 0.031 GT: all, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: take off living, Rew 0, Score 0, Done False, Value 1.794
+Obs: You're not wearing that.  The phone rings.
+TmplPred: look under OBJ 0.146, open OBJ 0.132, take off OBJ 0.120, put OBJ on OBJ 0.116, east 0.073 GT: take off OBJ, take OBJ, close OBJ, open OBJ, put OBJ down, put on OBJ, take OBJ from OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.054, bed 0.037, gold 0.032, door 0.032, all 0.031 GT: all, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: lock unlock, Rew 0, Score 0, Done False, Value 1.753
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.142, open OBJ 0.128, take off OBJ 0.119, put OBJ on OBJ 0.109, east 0.076 GT: take off OBJ, take OBJ, close OBJ, open OBJ, put OBJ down, put on OBJ, take OBJ from OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.053, bed 0.036, gold 0.032, door 0.032, all 0.031 GT: all, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: take living, Rew 0, Score 0, Done False, Value 1.741
+Obs: That's not something you can pick up.  The phone rings.
+TmplPred: look under OBJ 0.147, open OBJ 0.136, take off OBJ 0.121, put OBJ on OBJ 0.113, east 0.075 GT: take off OBJ, take OBJ, close OBJ, open OBJ, put OBJ down, put on OBJ, take OBJ from OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.054, bed 0.037, gold 0.032, door 0.032, all 0.031 GT: all, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: put door on shower, Rew 0, Score 0, Done False, Value 1.752
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.139, open OBJ 0.126, take off OBJ 0.124, put OBJ on OBJ 0.111, east 0.077 GT: take off OBJ, take OBJ, close OBJ, open OBJ, put OBJ down, put on OBJ, take OBJ from OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.053, bed 0.036, gold 0.032, door 0.032, all 0.030 GT: all, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: open and, Rew 0, Score 0, Done False, Value 1.725
+Obs: [!: Noun error.]
+TmplPred: look under OBJ 0.132, open OBJ 0.123, take off OBJ 0.117, put OBJ on OBJ 0.110, east 0.076 GT: take off OBJ, take OBJ, close OBJ, open OBJ, put OBJ down, put on OBJ, take OBJ from OBJ, put OBJ on OBJ, south, east
+ObjtPred: clothing 0.052, bed 0.036, door 0.031, gold 0.031, all 0.030 GT: all, clothing, door, dresser, gold, keys, table, telephone, wallet
+Act: exit, Rew 0, Score 0, Done False, Value 1.664
+Obs: Living room The furniture isn't as carefully arranged as one might like, and it's a bit lacking in the luxuries that might make this a more pleasant place to spend an evening   no stereo, no TV, no DVD, none of that   but this living room is still nicer than most of those in this neighborhood. A kitchenette lies to the east, the bedroom to the west and the front door to the south.  The phone in the bedroom rings.
+Returns:  1.999, 1.997, 1.994, 1.989, 1.978, 1.956, 1.911, 1.823
+Advants:  0.252, 0.191, 0.201, 0.236, 0.237, 0.204, 0.186, 0.159
+TmplPred: open OBJ 0.175, take off OBJ 0.139, look under OBJ 0.102, put OBJ on OBJ 0.093, east 0.087 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.076, bed 0.062, gold 0.049, table 0.048, all 0.045 GT: clothing, front, gold
+Act: open wallet, Rew 0, Score 0, Done False, Value 2.105
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.171, take off OBJ 0.136, look under OBJ 0.096, east 0.092, put OBJ on OBJ 0.091 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.076, bed 0.061, gold 0.048, table 0.048, all 0.045 GT: clothing, front, gold
+Act: look under door, Rew 0, Score 0, Done False, Value 2.033
+Obs: [Which do you mean, the bedroom door or the front door?]
+TmplPred: open OBJ 0.146, take off OBJ 0.130, look under OBJ 0.093, put OBJ on OBJ 0.083, east 0.081 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.075, bed 0.059, table 0.047, gold 0.047, all 0.044 GT: clothing, front, gold
+Act: open clothing, Rew 0, Score 0, Done False, Value 1.872
+Obs: That's not something you can open.  The phone in the bedroom rings.
+TmplPred: open OBJ 0.179, take off OBJ 0.153, look under OBJ 0.101, put OBJ on OBJ 0.092, east 0.085 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.078, bed 0.062, gold 0.050, table 0.049, all 0.046 GT: clothing, front, gold
+Act: put and down, Rew 0, Score 0, Done False, Value 2.214
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.170, take off OBJ 0.144, look under OBJ 0.097, put OBJ on OBJ 0.088, east 0.087 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.076, bed 0.061, gold 0.048, table 0.048, all 0.045 GT: clothing, front, gold
+Act: look under telephone, Rew 0, Score 0, Done False, Value 2.040
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.173, take off OBJ 0.145, look under OBJ 0.097, put OBJ on OBJ 0.089, east 0.089 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.076, bed 0.061, gold 0.049, table 0.048, all 0.045 GT: clothing, front, gold
+Act: put with on bathroom, Rew 0, Score 0, Done False, Value 2.098
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.175, take off OBJ 0.138, look under OBJ 0.099, put OBJ on OBJ 0.091, east 0.090 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.076, bed 0.061, gold 0.048, table 0.048, all 0.045 GT: clothing, front, gold
+Act: east, Rew 0, Score 0, Done False, Value 2.078
+Obs: Kitchenette You don't really have time to poke around and cook yourself a fabulous breakfast right now. Best to keep your time here limited. The exit is west.  On the counter are a toaster and a Pop Tart.  The phone in the bedroom rings.
+TmplPred: open OBJ 0.183, take off OBJ 0.143, look under OBJ 0.103, put OBJ on OBJ 0.095, east 0.085 GT: take off OBJ, take OBJ, put OBJ down, put on OBJ, put OBJ on OBJ, west
+ObjtPred: clothing 0.077, bed 0.062, gold 0.049, table 0.048, all 0.045 GT: breakfast, clothing, counter, gold
+Act: take off with, Rew 0, Score 0, Done False, Value 2.127
+Obs: [!: Noun error.]
+Returns:  2.000, 2.001, 2.002, 2.003, 2.006, 2.013, 2.026, 2.052
+Advants:  -0.105, -0.032, 0.129, -0.211, -0.034, -0.085, -0.052, -0.076
+TmplPred: open OBJ 0.211, take off OBJ 0.150, put OBJ on OBJ 0.079, take OBJ from OBJ 0.075, put OBJ down 0.074 GT: take off OBJ, take OBJ, put OBJ down, put on OBJ, put OBJ on OBJ, west
+ObjtPred: clothing 0.092, bed 0.087, table 0.066, gold 0.064, all 0.058 GT: breakfast, clothing, counter, gold
+Act: open telephone, Rew 0, Score 0, Done False, Value 2.298
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.205, take off OBJ 0.155, east 0.075, take OBJ from OBJ 0.074, put OBJ on OBJ 0.073 GT: take off OBJ, take OBJ, put OBJ down, put on OBJ, put OBJ on OBJ, west
+ObjtPred: clothing 0.092, bed 0.087, table 0.066, gold 0.064, all 0.058 GT: breakfast, clothing, counter, gold
+Act: open bed, Rew 0, Score 0, Done False, Value 2.234
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.211, take off OBJ 0.144, put OBJ on OBJ 0.078, take OBJ from OBJ 0.076, east 0.073 GT: take off OBJ, take OBJ, put OBJ down, put on OBJ, put OBJ on OBJ, west
+ObjtPred: clothing 0.092, bed 0.086, table 0.065, gold 0.063, all 0.057 GT: breakfast, clothing, counter, gold
+Act: close wallet, Rew 0, Score 0, Done False, Value 2.174
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.202, take off OBJ 0.147, take OBJ from OBJ 0.080, put OBJ on OBJ 0.075, east 0.075 GT: take off OBJ, take OBJ, put OBJ down, put on OBJ, put OBJ on OBJ, west
+ObjtPred: clothing 0.092, bed 0.086, table 0.065, gold 0.063, all 0.057 GT: breakfast, clothing, counter, gold
+Act: get off table, Rew 0, Score 0, Done False, Value 2.180
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.202, take off OBJ 0.150, take OBJ from OBJ 0.080, east 0.076, put OBJ on OBJ 0.073 GT: take off OBJ, take OBJ, put OBJ down, put on OBJ, put OBJ on OBJ, west
+ObjtPred: clothing 0.092, bed 0.086, table 0.066, gold 0.063, all 0.058 GT: breakfast, clothing, counter, gold
+Act: exit, Rew 0, Score 0, Done False, Value 2.208
+Obs: Living room The furniture isn't as carefully arranged as one might like, and it's a bit lacking in the luxuries that might make this a more pleasant place to spend an evening   no stereo, no TV, no DVD, none of that   but this living room is still nicer than most of those in this neighborhood. A kitchenette lies to the east, the bedroom to the west and the front door to the south.  The phone in the bedroom rings.
+TmplPred: open OBJ 0.207, take off OBJ 0.155, take OBJ from OBJ 0.082, put OBJ on OBJ 0.074, east 0.072 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.092, bed 0.087, table 0.066, gold 0.064, all 0.058 GT: clothing, front, gold
+Act: look under bed, Rew 0, Score 0, Done False, Value 2.252
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.207, take off OBJ 0.147, put OBJ on OBJ 0.078, take OBJ from OBJ 0.078, put OBJ down 0.073 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.092, bed 0.086, table 0.066, gold 0.063, all 0.058 GT: clothing, front, gold
+Act: close door, Rew 0, Score 0, Done False, Value 2.233
+Obs: [Which do you mean, the front door or the bedroom door?]
+TmplPred: open OBJ 0.177, take off OBJ 0.144, take OBJ from OBJ 0.080, east 0.072, put OBJ on OBJ 0.071 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: clothing 0.091, bed 0.085, table 0.065, gold 0.062, all 0.057 GT: clothing, front, gold
+Act: open living, Rew 0, Score 0, Done False, Value 2.015
+Obs: [!: Please be more specific.]  The phone in the bedroom rings.
+Returns:  2.001, 2.002, 2.005, 2.009, 2.018, 2.037, 2.074, 2.148
+Advants:  -0.297, -0.232, -0.170, -0.170, -0.190, -0.216, -0.159, 0.133
+TmplPred: open OBJ 0.192, take off OBJ 0.142, take OBJ from OBJ 0.099, put OBJ down 0.099, close OBJ 0.098 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.105, clothing 0.095, table 0.086, gold 0.076, all 0.070 GT: clothing, front, gold
+Act: take off wallet, Rew 0, Score 0, Done False, Value 2.226
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.189, take off OBJ 0.137, take OBJ from OBJ 0.102, put OBJ down 0.099, close OBJ 0.094 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.105, clothing 0.095, table 0.086, gold 0.076, all 0.070 GT: clothing, front, gold
+Act: put table on them, Rew 0, Score 0, Done False, Value 2.221
+Obs: [!: Pronoun "them" is currently unset. Please use a noun instead.]
+TmplPred: open OBJ 0.187, take off OBJ 0.144, take OBJ from OBJ 0.097, put OBJ down 0.095, close OBJ 0.094 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.105, clothing 0.095, table 0.086, gold 0.076, all 0.070 GT: clothing, front, gold
+Act: get up, Rew 0, Score 0, Done False, Value 2.193
+Obs: The front door is closed.  The phone in the bedroom rings.
+TmplPred: open OBJ 0.203, take off OBJ 0.136, put OBJ down 0.107, close OBJ 0.096, take OBJ from OBJ 0.094 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.105, clothing 0.095, table 0.086, gold 0.077, all 0.070 GT: clothing, front, gold
+Act: put telephone on door, Rew 0, Score 0, Done False, Value 2.266
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.188, take off OBJ 0.147, take OBJ from OBJ 0.098, put OBJ down 0.096, close OBJ 0.095 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.105, clothing 0.095, table 0.086, gold 0.076, all 0.070 GT: clothing, front, gold
+Act: take keys from sky, Rew 0, Score 0, Done False, Value 2.262
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.179, take off OBJ 0.142, take OBJ from OBJ 0.103, put OBJ down 0.094, close OBJ 0.091 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.105, clothing 0.095, table 0.085, gold 0.076, all 0.070 GT: clothing, front, gold
+Act: open keys, Rew 0, Score 0, Done False, Value 2.141
+Obs: [!: Noun error.]
+TmplPred: open OBJ 0.188, take off OBJ 0.138, take OBJ from OBJ 0.100, put OBJ down 0.097, close OBJ 0.091 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.105, clothing 0.095, table 0.085, gold 0.076, all 0.070 GT: clothing, front, gold
+Act: get up, Rew 0, Score 0, Done False, Value 2.156
+Obs: The front door is closed.  The phone in the bedroom rings.
+TmplPred: open OBJ 0.202, take off OBJ 0.136, put OBJ down 0.108, close OBJ 0.097, take OBJ from OBJ 0.093 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.105, clothing 0.095, table 0.086, gold 0.076, all 0.070 GT: clothing, front, gold
+Act: put bed on living, Rew 0, Score 0, Done True, Value 2.262
+Obs: [!: Noun error.]
+Step 96 EpisodeScore 0
+
+Returns:  1.984, 1.969, 1.938, 1.875, 1.750, 1.500, 1.000, 0.000
+Advants:  -0.242, -0.253, -0.255, -0.391, -0.512, -0.641, -1.156, -2.262
+TmplPred: put OBJ down 0.163, open OBJ 0.152, take off OBJ 0.125, close OBJ 0.114, take OBJ from OBJ 0.101 GT: take off OBJ, open OBJ, put OBJ down, put on OBJ, west, east
+ObjtPred: bed 0.102, clothing 0.097, table 0.096, gold 0.089, all 0.080 GT: clothing, front, gold
+Act: close door, Rew 0, Score 0, Done False, Value 1.991
+Obs: The phone rings.  Oh, no   how long have you been asleep? Sure, it was a tough night, but... This is bad. This is very bad.  The phone rings.          9:05 by Adam Cadre v1.11 (2012.0724) / Original release 2000.0103          Bedroom (in bed) This bedroom is extremely spare, with dirty laundry scattered haphazardly all over the floor. Cleaner clothing can be found in the dresser. A bathroom lies to the south, while a door to the east leads to the living room.  On the end table are a telephone, a wallet and some keys.  The phone rings.
+TmplPred: put OBJ down 0.149, open OBJ 0.131, take off OBJ 0.128, take OBJ from OBJ 0.123, close OBJ 0.118 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: bed 0.103, clothing 0.097, table 0.097, gold 0.090, all 0.080 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: take telephone from two, Rew 0, Score 0, Done False, Value 2.075
+Obs: [!: Noun error. (This could mean a number of things: a noun used in your command may not be present, or it may be present but not visible; it may be scenery you can't interact with; you may have specified too many indirect objects; you may have misspelled something; the list goes on.)]
+TmplPred: take off OBJ 0.140, put OBJ down 0.138, open OBJ 0.134, take OBJ from OBJ 0.114, close OBJ 0.113 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: bed 0.103, clothing 0.097, table 0.097, gold 0.090, all 0.081 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet
+Act: put clothing down, Rew 0, Score 0, Done False, Value 2.073
+Obs: (first taking the soiled clothing off) You take off the soiled clothing. Dropped.  The phone rings.
+TmplPred: take off OBJ 0.138, put OBJ down 0.136, take OBJ from OBJ 0.130, open OBJ 0.130, close OBJ 0.114 GT: get up, take off OBJ, take OBJ, close OBJ, look under OBJ, open OBJ, put OBJ down, put on OBJ, take OBJ from OBJ, put OBJ on OBJ
+ObjtPred: bed 0.103, clothing 0.097, table 0.096, gold 0.089, all 0.080 GT: all, bed, clothing, door, gold, keys, table, telephone, wallet

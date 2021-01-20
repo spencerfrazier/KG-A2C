@@ -48,8 +48,8 @@ def parse_args():
     parser.add_argument('--use_cs',default=False, type=bool)
     parser.add_argument("--device_comet", type=str, default="2")
     parser.add_argument("--model_file", type=str, default="comet/models/1e-05_adam_64_15500.pickle")
-    parser.add_argument("--relation", type=str, default="UsedFor")
-    parser.add_argument("--sampling_algorithm", type=str, default="beam-3")
+    parser.add_argument("--relation", type=str, default="HasA")
+    parser.add_argument("--sampling_algorithm", type=str, default="beam-5")
 
 
     args = parser.parse_args()
