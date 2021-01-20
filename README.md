@@ -25,7 +25,7 @@ Download and extract [Stanford CoreNLP](https://stanfordnlp.github.io/CoreNLP/do
 cd stanford-corenlp-full-2018-10-05/ && java -mx8g -cp "*" edu.stanford.nlp.pipeline.StanfordCoreNLPServer -port 9000 -timeout 15000
 ```
 
-Train KG-A2C
+Train KG-A2C using COMET
 ```bash
-cd kga2c && python train.py --rom_file_path path_to_your_rom --openie_path path_to_your_openie_install --tsv_file ../data/rom_name_here
+cd kga2c && python train.py --rom_file_path path_to_your_rom --openie_path path_to_your_openie_install --tsv_file ../data/rom_name_here --use_cs True
 ```
